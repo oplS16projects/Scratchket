@@ -1,17 +1,28 @@
-# Scratchket
-Visual representation of Racket data structures
-paste code here
-
-
-# Project Title: title here (10 words maximum)
+# Project Title: Scratchket
 
 ### Statement
-Describe your project. Why is it interesting? Why is it interesting to you personally? What do you hope to learn? 
+Scratchket is a Racket program which will visually represent Racket data sctructures. We are planning to
+use colored squares to represent data, different colors refering to different data types. i.e. green squares
+represent integers, red reperesenting strings. We will combine the colored squares with a procedure "machine"
+with a TBD visual look. Combining these in the correct ways will produce a visual output representing the 
+resulting structure.
+
+Scratch is used as a visual, educational tool for beginner programmers to learn how to program. Scratchket is interesting
+because it does the same exact thing as Scratch, but using the Racket language and concepts. It can help new Racket learners
+to understand the certain concepts of Racket. I, Kyle, am interested in this project because it visually represents some
+of the things we learned in class. 
+
+We hope to learn how to use GUIs/2d graphics in Racket, and utilizing mouse interactions within a program.  
 
 ### Analysis
-Explain what approaches from class you will bring to bear on the project. Be explicit: e.g., will you use recursion? How? Will you use map/filter/reduce? How? Will you use data abstraction? Will you use object-orientation? Will you use functional approaches to processing your data? Will you use state-modification approaches? A combination?
-
-The idea here is to identify what ideas from the class you will use in carrying out your project. 
+We will be using map, recursion, data abstraction, and objects as of our plan right now. By internally representing all 
+data structures as lists of objects, we will be able to Map movement procedures to any object. Recursion would be mostly used 
+in some of the procedure machines, maybe also if we decide to animate some of the input/output process, recursion would be 
+used for that.
+We are using objects for internal representations of certain things, and using our library's objects (mouse events, GUI frames,
+etc.). Data abstraction will be used quite a lot because we are using objects. We will be retrieving object metadata with
+procedures like the object's size, x and y coordinates, etc. We will be creating objects in an object-orientated way to 
+represent each square, to store the coordinates and data inside. The states of the objects will be modified when we move the objects.
 
 ### Data set or other source materials
 If you will be working with existing data, where will you get those data from? (Dowload it from a website? access it in a database? create it in a simulation you will build....)
@@ -71,7 +82,7 @@ Here each group member gets a section where they, as an individual, detail what 
 
 In the headings below, replace the silly names and GitHub handles with your actual ones.
 
-### Susan Scheme @susanscheme
+### Kyle Jolicoeur @kjolicoeur
 will write the....
 
 ### Leonard Lambda @lennylambda
