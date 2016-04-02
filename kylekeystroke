@@ -20,6 +20,8 @@
 ;             [paint-callback
 ;              (lambda (canvas dc)
 ;                (send dc set-scale 3 3)
+                (send dc set-brush "red" 'solid)
+                (send dc set-pen "black" 1 'solid)
 ;                (send dc draw-rectangle 0 10 20 20); x y width height
                 ;(send dc draw-rectangle 20 10 20 20)
 ;                )]))
@@ -27,7 +29,9 @@
 
 (define (move-square x y)
   (send can refresh-now (lambda (dc)
-                               (send dc draw-rectangle x y 20 20))))
+                                (send dc set-brush "red" 'solid)  
+                                (send dc set-pen "black" 1 'solid)
+                                (send dc draw-rectangle x y 20 20))))
 ; Start of Kyle's code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define mouse-x 0)
