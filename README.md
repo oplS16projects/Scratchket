@@ -43,39 +43,25 @@ Create several paragraphs of narrative to explain the pieces and how they intero
 ## Schedule
 Explain how you will go from proposal to finished product. 
 
-There are three deliverable milestones to explicitly define, below.
 
-The nature of deliverables depend on your project, but may include things like processed data ready for import, core algorithms implemented, interface design prototyped, etc. 
 
-You will be expected to turn in code, documentation, and data (as appropriate) at each of these stages.
-
-Write concrete steps for your schedule to move from concept to working system. 
 
 ### First Milestone (Fri Apr 15)
 We will be turning in a finished user interface. Objects will exist, be selectable, and moveable.
 
 ### Second Milestone (Fri Apr 22)
-
+We will be turning in an internal representation of the data structures that are linked to displayed structures.
 
 ### Final Presentation (last week of semester)
-What additionally will be done in the last chunk of time?
+In combination with the visual form we will also have a printed form of the data structures.
 
 ## Group Responsibilities
 Here each group member gets a section where they, as an individual, detail what they are responsible for in this project. Each group member writes their own Responsibility section. Include the milestones and final deliverable.
 
-**Additional instructions for teams of three:** 
-* Remember that you must have prior written permission to work in groups of three (specifically, an approved `FP3` team declaration submission).
-* The team must nominate a lead. This person is primarily responsible for code integration. This work may be shared, but the team lead has default responsibility.
-* The team lead has full partner implementation responsibilities also.
-* Identify who is team lead.
-
-In the headings below, replace the silly names and GitHub handles with your actual ones.
 
 ### Kyle Jolicoeur @kjolicoeur
 will write the....
 
-### Leonard Lambda @lennylambda
-will work on...
+### Brian Thomas @jumpyhoof
+will work on tacos
 
-### Frank Functions @frankiefunk 
-Frank is team lead. Additionally, Frank will work on...   
