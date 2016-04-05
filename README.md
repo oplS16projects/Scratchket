@@ -41,9 +41,7 @@ Upload the architecture diagram you made for your slide presentation to your rep
 Create several paragraphs of narrative to explain the pieces and how they interoperate.
 
 ## Schedule
-Explain how you will go from proposal to finished product. 
-
-
+Our first goal is to get the GUI working. Since a graphical representation of the data structures is our main goal we will need the GUI working in order to test and debug the scratch side of our program. This will be our first milestone. Next we will work on the internal representation of the data structures and the "procedure machines" that will be used to combine the data structures in different ways. This is the second milestone and the bulk of our program. We're leaving a little extra room in the last week for unanticipated bug fixes and refinements. If our program is working and we still have time we will try to incorporate extra bonus features, like challenges. 
 
 
 ### First Milestone (Fri Apr 15)
@@ -63,5 +61,5 @@ Here each group member gets a section where they, as an individual, detail what 
 will write the....
 
 ### Brian Thomas @jumpyhoof
-will work on tacos
+I will be working on the graphics side of the GUI and the internal representation of the underlying data structures.
 
