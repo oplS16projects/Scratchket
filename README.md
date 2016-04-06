@@ -34,11 +34,12 @@ We plan on demonastrating an interactive educational program that will help user
 Success will be determined if our visual representation of the data structures agrees with the printed form and users can take away an understanding of the concepts of Racket data structures.
 
 ## Architecture Diagram
-WILL UPLOAD PICTURE
+![Diagram](https://github.com/oplS16projects/Scratchket/blob/master/Scratchket%20diagram.png)
 
-Upload the architecture diagram you made for your slide presentation to your repository, and include it in-line here.
+The User Interface branch of the main program is where all user input will be developed. Our mouse events (and keyboard events if we need them) will be developed in this portion of development. The UI will need to be implemented in the objects themselves to keep track of what is selected, where they need to move to, etc. UI needs to work with the objects, which takes place in the internal representation portion.
 
-Create several paragraphs of narrative to explain the pieces and how they interoperate.
+The GUI/Visual portion of our program is essentially what you can see. The GUI window, layout, and the "data squares" and "procedure machines" will be displayed when the program runs. The "data squares" are planned to be diffrent colors symbolizing different data types (integer, string, etc), while the "procedure machines" are planned to look slightly different than the normal square look, and have an input/output side. Both of these things need an internal representation of an object, which we are considering using classes for, and will link the data to what is on screen.
+
 
 ## Schedule
 Our first goal is to get the GUI working. Since a graphical representation of the data structures is our main goal we will need the GUI working in order to test and debug the scratch side of our program. This will be our first milestone. Next we will work on the internal representation of the data structures and the "procedure machines" that will be used to combine the data structures in different ways. This is the second milestone and the bulk of our program. We're leaving a little extra room in the last week for unanticipated bug fixes and refinements. If our program is working and we still have time we will try to incorporate extra bonus features, like challenges. 
@@ -58,7 +59,7 @@ Here each group member gets a section where they, as an individual, detail what 
 
 
 ### Kyle Jolicoeur @kjolicoeur
-will write the....
+I am going to do the user interface, link the user interface to the internal representation, and link the visual and data portion of the "procedure machines" to help balance the workload. The UI will be finished by the first milestone. "procedure machine" visual<->data will be done by the second milestone.
 
 ### Brian Thomas @jumpyhoof
 I will be working on the graphics side of the GUI and the internal representation of the underlying data structures.
