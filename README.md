@@ -10,7 +10,7 @@ resulting structure.
 Scratch is used as a visual, educational tool for beginner programmers to learn how to program. Scratchket is interesting
 because it does the same exact thing as Scratch, but using the Racket language and concepts. It can help new Racket learners
 to understand the certain concepts of Racket. I, Kyle, am interested in this project because it visually represents some
-of the things we learned in class. 
+of the things we learned in class. I, Brian, am interested in this project because it will allow those who are more visual learners and those who like to jump in and "play" to pick up on Racket data structures. You will be able to see how two data types can be joined with a cons cell, and how car will retrieve the first of those input.
 
 We hope to learn how to use GUIs/2d graphics in Racket, and utilizing mouse interactions within a program.  
 
