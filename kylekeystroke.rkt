@@ -94,8 +94,21 @@
                  [parent frame]
                  [paint-callback
                   (lambda (canvas dc)
-                    (disp-primitive-types)
-                    )]))
+                    ;Display red block
+                    (send dc set-brush "red" 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc draw-rectangle 20 20 30 30)
+                    ;Display green block
+                    (send dc set-brush "green" 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc draw-rectangle 20 70 30 30)
+                    ;Display blue block
+                    (send dc set-brush "blue" 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc draw-rectangle 20 120 30 30)
+                    )
+]))
+
 
 (send frame show #t)
 
