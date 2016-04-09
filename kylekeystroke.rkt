@@ -6,7 +6,7 @@
 
 
 ;test object for getter procedures
-(define cell (cons (list 'cons #t (cons 10 15) (cons 30 30)) 'red)) 
+(define cell (cons (list 'cons #f (cons 10 15) (cons 30 30)) 'red)) 
 (define ls (list cell)) ;master list of objects
 (display cell)
 
@@ -19,7 +19,9 @@
 (define (get-mylength obj) (caar (cdddar obj)))
 (define (get-mywidth obj)  (cdar (cdddar obj)))
 (define (get-selected)
-  (filter (lambda (x) (selected? x))  ls))
+  (if (null? (filter (lambda (x) (selected? x)) ls))
+      '()
+      (car (filter (lambda (x) (selected? x))  ls))))
   
 (define frame (new frame%
                    [label "Scratchket"]
@@ -58,14 +60,15 @@
          [parent frame]
          [min-width 100]
          [vert-margin 5]))
-    
+
+; Updates the message to the currently selected item
 (define update-message
          (lambda ()
            (let ((return (get-selected)))
            (send message set-label (string-append "Selected:     "
                                                (if (not (null? return))
                                                    (symbol->string
-                                                    (get-tag (car return)))
+                                                    (get-tag return))
                                                    "Nothing"))))))
     (define/override (on-event event)
       ;Grab the x and y coords
@@ -76,21 +79,32 @@
           ;1. Change the message label to show new selected thing
           ;2. Check if something is selected. If not, then select the object.
           ;3. If something is selected, move the object.
-         (if (not (null? (get-selected))) 
+         (begin
+           ;2. Select an unselected object
+           ;If the object is not within the mouse click range, return null
+           (if (null? (filter (lambda (x)
+                                (and  (>= (get-x x) mouse-x)
+                                      (<= (+ (get-x x) (get-mywidth x)) mouse-x)
+                                      (>= (get-y x) mouse-y)
+                                      (<= (+ (get-y x) (get-mylength x)) mouse-y)))
+                              ls))
+               '()
+           ;Otherwise, set the object to selected true
+               (let ((keep (filter (lambda (x) (not (selected? x))) ls))
+                     (wrong (car (filter (lambda (x) (selected? x)) ls))))
+                 ;the set to create the new object
+                  (set! ls (cons (create-obj (get-tag wrong) #t (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
+                        keep))))
+               
+                                     
+           ;3. If something is already selected, move it
+           (if (not (null? (get-selected))) 
            (begin 
              (update-message)
              (move-square mouse-x mouse-y))
            (update-message))
-           '()
-         
-        )
-      (if (send event dragging?)
-          (if (not (null? (get-selected))) 
-           (begin 
-             (update-message)
-             (move-square mouse-x mouse-y))
-           (update-message))
-          '())
+           '())
+
       (if (send event button-down? 'right)
           (if (null? (get-selected))
               (update-message)
@@ -102,6 +116,8 @@
                 )
                 (update-message)))
           '()))
+      '())
+
     ; Call the superclass init, passing on all init args
     (super-new)))
  
