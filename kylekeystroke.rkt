@@ -3,14 +3,14 @@
 (require racket/gui/base)
 (require racket/draw)
 
-(define position car)
-(define size cdr)
+(define cell (cons (list 'cons #t 10 10 30 30) 'red))
 
-(define (xpos rect) (car (position rect)))
-(define (ypos rect) (cdr (position rect)))
-
-(define width car)
-(define height cdr)
+(define (get-tag obj)
+  (caar obj))
+(define (selected? obj)
+  (cadar obj))
+(define (get-selected)
+  (filter (lambda (x) (selected? x)) (list cell)))
 
 (define frame (new frame%
                    [label "Scratchket"]
@@ -26,6 +26,13 @@
 ;                )]))
 
 
+(define (draw-cons canvas cell)
+  (send canvas refresh-now (lambda (dc)
+                             (send dc set-brush "red" 'solid)
+                             (send dc set-pen "black" 1 'solid)
+                             (send dc draw-rectangle 10 10 20 20))))
+
+
 (define (move-square x y)
   (send can refresh-now (lambda (dc)
                                 (send dc set-brush "red" 'solid)  
@@ -36,8 +43,6 @@
 (define mouse-x 0)
 (define mouse-y 0)
 
-(define get-tag (lambda (x) x))
-(define get-selected '(kyle 'bar))
 (define my-canvas%
   (class canvas% ; The base class is canvas%(send message set-label (string-append "Selected:     " (symbol->string (get-tag ())
     (inherit get-width get-height refresh)
@@ -51,10 +56,13 @@
          [vert-margin 5]))
     
     (define update-message
-      (lambda () 
-  (send message set-label (string-append "Selected:     "
-                                         (symbol->string
-                                          (get-tag (car get-selected)))))))
+         (lambda ()
+           (let ((return (get-selected)))
+           (send message set-label (string-append "Selected:     "
+                                               (if (not (null? return))
+                                                   (symbol->string
+                                                    (get-tag (car return)))
+                                                   "Nothing"))))))
     (define/override (on-event event)
       ;Grab the x and y coords
       (set! mouse-x (send event get-x))
@@ -64,14 +72,20 @@
           ;1. Change the message label to show new selected thing
           ;2. Check if something is selected. If not, then select the object.
           ;3. If something is selected, move the object.
-        (begin 
-          (update-message)
-          (move-square mouse-x mouse-y))
-         '()
+          (if (not (null? (get-selected))) 
+           (begin 
+             (update-message)
+             (move-square mouse-x mouse-y))
+           (update-message))
+           '()
          
         )
       (if (send event dragging?)
-          (move-square mouse-x mouse-y)
+          (if (not (null? (get-selected))) 
+           (begin 
+             (update-message)
+             (move-square mouse-x mouse-y))
+           (update-message))
           '()))
     ; Call the superclass init, passing on all init args
     (super-new)))
