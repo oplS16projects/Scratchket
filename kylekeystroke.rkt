@@ -8,7 +8,7 @@
 (define (get-tag obj)
   (caar obj))
 (define (selected? obj)
-  (cadar obj)
+  (cadar obj))
 (define (get-selected)
   (filter (lambda (x) (selected? x)) (list cell)))
   
