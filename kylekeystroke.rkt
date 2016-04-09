@@ -1,10 +1,10 @@
-
 #lang racket/gui
 (require racket/gui/base)
 (require racket/gui/base)
 (require racket/draw)
 
 (define ls '()) ;master list of objects
+
 
 ;test object for getter procedures
 (define cell (cons (list 'cons #t (cons 10 15) (cons 30 30)) 'red)) 
@@ -18,11 +18,16 @@
 (define (get-width obj)  (cdar (cdddar obj)))
 (define (get-selected)
   (filter (lambda (x) (selected? x)) (list cell)))
-  
+
 (define frame (new frame%
                    [label "Scratchket"]
                    [width 600]
                    [height 600]))
+
+
+(define (create-obj tag selected pos size data)
+  (cons (list tag selected pos size) data))
+;(set! ls (cons (create-obj 'primitive #t (cons 10 10) (cons 30 30) 1) '()))
 
 (define (draw-cons canvas cell)
   (send canvas refresh-now (lambda (dc)
@@ -88,7 +93,7 @@
           '()))
     ; Call the superclass init, passing on all init args
     (super-new)))
- 
+
 ; Make a canvas that handles events in the frame
 (define can (new my-canvas%
                  [parent frame]
@@ -129,4 +134,3 @@
           (send dc set-pen "black" 1 'solid)
           (send dc draw-rectangle 20 120 30 30)
           )))
-(disp-primitive-types)
