@@ -3,12 +3,18 @@
 (require racket/gui/base)
 (require racket/draw)
 
-(define cell (cons (list 'cons #f 10 10 30 30) 'red))
+(define ls '()) ;master list of objects
 
-(define (get-tag obj)
-  (caar obj))
-(define (selected? obj)
-  (cadar obj))
+;test object for getter procedures
+(define cell (cons (list 'cons #f (cons 10 15) (cons 30 30)) 'red)) 
+
+;Getter procedures
+(define (get-tag obj)    (caar obj))
+(define (selected? obj)  (cadar obj))
+(define (get-x obj)      (car (caddar obj)))
+(define (get-y obj)      (cdr (caddar obj)))
+(define (get-height obj) (caar (cdddar obj)))
+(define (get-width obj)  (cdar (cdddar obj)))
 (define (get-selected)
   (filter (lambda (x) (selected? x)) (list cell)))
   
@@ -35,6 +41,7 @@
 
 (define (move-square x y)
   (send can refresh-now (lambda (dc)
+                                (disp-primitive-types)  
                                 (send dc set-brush "red" 'solid)  
                                 (send dc set-pen "black" 1 'solid)
                                 (send dc draw-rectangle x y 30 30))))
@@ -95,10 +102,29 @@
                  [paint-callback
               (lambda (canvas dc)
                 ;(send dc set-scale 3 3)
-                (send dc set-brush "red" 'solid)
-                (send dc set-pen "black" 1 'solid)
-                (send dc draw-rectangle 0 30 30 30); x y width height
+                ;(send dc set-brush "red" 'solid)
+                ;(send dc set-pen "black" 1 'solid)
+                ;(send dc draw-rectangle 0 30 30 30); x y width height
                 ;(send dc draw-rectangle 20 10 20 20)
              )]))
 
 (send frame show #t)
+
+(define (disp-primitive-types)
+  (send can
+        refresh-now
+        (lambda (dc)
+          ;Display red block
+          (send dc set-brush "red" 'solid)
+          (send dc set-pen "black" 1 'solid)
+          (send dc draw-rectangle 20 20 30 30)
+          ;Display green block
+          (send dc set-brush "green" 'solid)
+          (send dc set-pen "black" 1 'solid)
+          (send dc draw-rectangle 20 70 30 30)
+          ;Display blue block
+          (send dc set-brush "blue" 'solid)
+          (send dc set-pen "black" 1 'solid)
+          (send dc draw-rectangle 20 120 30 30)
+          )))
+(disp-primitive-types)
