@@ -33,9 +33,14 @@
 (define (add-obj-to-list obj)
   (set! ls (cons obj ls)))
 
+;; PRIMITIVES FOR THE MENU
+(add-obj-to-list (create-obj 'menu #f (cons 20 20)  (cons 30 30) 'red))
+(add-obj-to-list (create-obj 'menu #f (cons 20 70)  (cons 30 30) 'green))
+(add-obj-to-list (create-obj 'menu #f (cons 20 120) (cons 30 30) 'blue))
+
 ;; OBJECTS FOR TESTING LIST
 (add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) 'green))
-(add-obj-to-list (create-obj 'primitive #t (cons 150 150) (cons 30 30) 'red))
+(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) 'red))
 (add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) 'blue))
 
 ;; DISPLAY THE CURRENT LIST IN THE CANVAS
@@ -45,7 +50,7 @@
         (lambda (dc)
           (define (iter ls)
             (if (null? ls)
-                (disp-menu dc)
+                (display "done")
                 (begin
                     (send dc set-brush (symbol->string (get-data (car ls))) 'solid)
                     (send dc set-pen "black" 1 'solid)
@@ -96,45 +101,54 @@
           ;1. Change the message label to show new selected thing
           ;2. Check if something is selected. If not, then select the object.
           ;3. If something is selected, move the object.
-         (begin
+          (begin
            ;2. Select an unselected object
            ;If the object is not within the mouse click range, return null
-           (if (null? (filter (lambda (x)
-                                (and  (>= (get-x x) mouse-x)
-                                      (<= (+ (get-x x) (get-mywidth x)) mouse-x)
-                                      (>= (get-y x) mouse-y)
-                                      (<= (+ (get-y x) (get-mylength x)) mouse-y)))
-                              ls))
-               '()
-           ;Otherwise, set the object to selected true
-               (let ((keep (filter (lambda (x) (not (selected? x))) ls))
-                     (wrong (car (filter (lambda (x) (selected? x)) ls))))
-                 ;the set to create the new object
-                  (set! ls (cons (create-obj (get-tag wrong) #t (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
-                        keep))))
+           (let ((in-range (lambda (x)
+                              (and
+                                    (<= (get-x x) mouse-x)
+                                    (>= (+ (get-x x) (get-mywidth x)) mouse-x)
+                                    (<= (get-y x) mouse-y)
+                                    (>= (+ (get-y x) (get-mylength x)) mouse-y)))))
+
+
+             
+             (if (null? (filter in-range ls))
+                 '()
+                 ;Otherwise, set the object to selected true
+                 (let ((keep (filter (lambda (x) (not (selected? x))) ls))
+                       (wrong (car (filter in-range ls))))
+                   ;the set to create the new object
+                   (set! ls (cons (create-obj (get-tag wrong) #t (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
+                                  keep))))
                
-                                     
-           ;3. If something is already selected, move it
-           (if (not (null? (get-selected))) 
-           (begin 
+             
+             ;3. If something is already selected, move it
+             (if (not (null? (get-selected))) 
+               (begin 
              (update-message)
-             (move-square mouse-x mouse-y))
+             (let ((keep (filter (lambda (x) (not (selected? x))) ls))
+                   (wrong (car (filter (lambda (x) (selected? x)) ls))))
+                   ;the set to create the new object
+                   (set! ls (cons (create-obj (get-tag wrong) #t (cons mouse-x mouse-y) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
+                                  keep)))
+             (display-list can))
            (update-message))
-           '())
+             ))
+          '())
 
-      (if (send event button-down? 'right)
-          (if (null? (get-selected))
-              (update-message)
-              (begin
-                (let ((keep (filter (lambda (x) (not (selected? x))) ls))
-                      (wrong (car (filter (lambda (x) (selected? x)) ls))))
-                  (set! ls (cons (create-obj (get-tag wrong) #f (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
-                        keep))
-                )
-                (update-message)))
-          '()))
-      '())
-
+           (if (send event button-down? 'right)
+               (if (null? (get-selected))
+                   (update-message)
+                   (begin
+                     (let ((keep (filter (lambda (x) (not (selected? x))) ls))
+                           (wrong (car (filter (lambda (x) (selected? x)) ls))))
+                       (set! ls (cons (create-obj (get-tag wrong) #f (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
+                                      keep))
+                       )
+                     (update-message)))
+               '()))
+      
     ; Call the superclass init, passing on all init args
     (super-new)))
  
@@ -143,36 +157,27 @@
                  [parent frame]
                  [paint-callback
                   (lambda (canvas dc)
-                    ;Display red block
-                    (send dc set-brush "red" 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc draw-rectangle 20 20 30 30)
-                    ;Display green block
-                    (send dc set-brush "green" 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc draw-rectangle 20 70 30 30)
-                    ;Display blue block
-                    (send dc set-brush "blue" 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc draw-rectangle 20 120 30 30)
+                    (display-list can)
                     )
-]))
-
+]
+                 ))
+(display-list can)
 (send frame show #t)
+(display-list can)
 
-;; DISP-MENU
-;; send the menu with primitive types to the canvas
-(define (disp-menu dc)
-          ;Display red block
-          (send dc set-brush "red" 'solid)
-          (send dc set-pen "black" 1 'solid)
-          (send dc draw-rectangle 20 20 30 30)
-          ;Display green block
-          (send dc set-brush "green" 'solid)
-          (send dc set-pen "black" 1 'solid)
-          (send dc draw-rectangle 20 70 30 30)
-          ;Display blue block
-          (send dc set-brush "blue" 'solid)
-          (send dc set-pen "black" 1 'solid)
-          (send dc draw-rectangle 20 120 30 30)
-  ) ;; END OF DISP-MENU
+;;; DISP-MENU
+;;; send the menu with primitive types to the canvas
+;(define (disp-menu dc)
+;          ;Display red block
+;          (send dc set-brush "red" 'solid)
+;          (send dc set-pen "black" 1 'solid)
+;          (send dc draw-rectangle 20 20 30 30)
+;          ;Display green block
+;          (send dc set-brush "green" 'solid)
+;          (send dc set-pen "black" 1 'solid)
+;          (send dc draw-rectangle 20 70 30 30)
+;          ;Display blue block
+;          (send dc set-brush "blue" 'solid)
+;          (send dc set-pen "black" 1 'solid)
+;          (send dc draw-rectangle 20 120 30 30)
+;  ) ;; END OF DISP-MENU
