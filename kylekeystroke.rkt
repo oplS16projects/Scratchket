@@ -9,7 +9,9 @@
   (caar obj))
 (define (selected? obj)
   (cadar obj)
-
+(define (get-selected)
+  (filter (lambda (x) (selected? x)) (list cell)))
+  
 (define frame (new frame%
                    [label "Scratchket"]
                    [width 600]
@@ -41,8 +43,6 @@
 (define mouse-x 0)
 (define mouse-y 0)
 
-(define get-tag (lambda (x) x))
-(define get-selected '(kyle 'bar))
 (define my-canvas%
   (class canvas% ; The base class is canvas%(send message set-label (string-append "Selected:     " (symbol->string (get-tag ())
     (inherit get-width get-height refresh)
@@ -55,11 +55,14 @@
          [min-width 100]
          [vert-margin 5]))
     
-    (define update-message
-      (lambda () 
-  (send message set-label (string-append "Selected:     "
-                                         (symbol->string
-                                          (get-tag (car get-selected)))))))
+(define update-message
+         (lambda ()
+           (let ((return (get-selected)))
+           (send message set-label (string-append "Selected:     "
+                                               (if (not (null? return))
+                                                   (symbol->string
+                                                    (get-tag (car return)))
+                                                   "Nothing"))))))
     (define/override (on-event event)
       ;Grab the x and y coords
       (set! mouse-x (send event get-x))
@@ -69,14 +72,20 @@
           ;1. Change the message label to show new selected thing
           ;2. Check if something is selected. If not, then select the object.
           ;3. If something is selected, move the object.
-        (begin 
-          (update-message)
-          (move-square mouse-x mouse-y))
-         '()
+         (if (not (null? (get-selected))) 
+           (begin 
+             (update-message)
+             (move-square mouse-x mouse-y))
+           (update-message))
+           '()
          
         )
       (if (send event dragging?)
-          (move-square mouse-x mouse-y)
+          (if (not (null? (get-selected))) 
+           (begin 
+             (update-message)
+             (move-square mouse-x mouse-y))
+           (update-message))
           '()))
     ; Call the superclass init, passing on all init args
     (super-new)))
