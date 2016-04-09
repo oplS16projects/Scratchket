@@ -10,6 +10,7 @@
 (define cell (cons (list 'cons #t (cons 10 15) (cons 30 30)) 'red)) 
 
 ;Getter procedures
+(define (get-data obj)   (cdr obj))
 (define (get-tag obj)    (caar obj))
 (define (selected? obj)  (cadar obj))
 (define (get-x obj)      (car (caddar obj)))
