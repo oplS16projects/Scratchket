@@ -3,14 +3,12 @@
 (require racket/gui/base)
 (require racket/draw)
 
-(define position car)
-(define size cdr)
+(define cell (cons (list 'cons #f 10 10 30 30) 'red))
 
-(define (xpos rect) (car (position rect)))
-(define (ypos rect) (cdr (position rect)))
-
-(define width car)
-(define height cdr)
+(define (get-tag obj)
+  (caar obj))
+(define (selected? obj)
+  (cadar obj)
 
 (define frame (new frame%
                    [label "Scratchket"]
@@ -24,6 +22,13 @@
 ;                (send dc draw-rectangle 0 10 20 20); x y width height
                 ;(send dc draw-rectangle 20 10 20 20)
 ;                )]))
+
+
+(define (draw-cons canvas cell)
+  (send canvas refresh-now (lambda (dc)
+                             (send dc set-brush "red" 'solid)
+                             (send dc set-pen "black" 1 'solid)
+                             (send dc draw-rectangle 10 10 20 20))))
 
 
 (define (move-square x y)
