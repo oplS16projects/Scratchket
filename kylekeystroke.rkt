@@ -1,13 +1,14 @@
+
 #lang racket/gui
 (require racket/gui/base)
 (require racket/gui/base)
 (require racket/draw)
 
-(define ls '()) ;master list of objects
-
 
 ;test object for getter procedures
 (define cell (cons (list 'cons #t (cons 10 15) (cons 30 30)) 'red)) 
+(define ls (list cell)) ;master list of objects
+(display cell)
 
 ;Getter procedures
 (define (get-data obj)   (cdr obj))
@@ -15,20 +16,18 @@
 (define (selected? obj)  (cadar obj))
 (define (get-x obj)      (car (caddar obj)))
 (define (get-y obj)      (cdr (caddar obj)))
-(define (get-height obj) (caar (cdddar obj)))
-(define (get-width obj)  (cdar (cdddar obj)))
+(define (get-mylength obj) (caar (cdddar obj)))
+(define (get-mywidth obj)  (cdar (cdddar obj)))
 (define (get-selected)
-  (filter (lambda (x) (selected? x)) (list cell)))
-
+  (filter (lambda (x) (selected? x))  ls))
+  
 (define frame (new frame%
                    [label "Scratchket"]
                    [width 600]
                    [height 600]))
 
-
 (define (create-obj tag selected pos size data)
   (cons (list tag selected pos size) data))
-;(set! ls (cons (create-obj 'primitive #t (cons 10 10) (cons 30 30) 1) '()))
 
 (define (draw-cons canvas cell)
   (send canvas refresh-now (lambda (dc)
@@ -91,30 +90,28 @@
              (update-message)
              (move-square mouse-x mouse-y))
            (update-message))
+          '())
+      (if (send event button-down? 'right)
+          (if (null? (get-selected))
+              (update-message)
+              (begin
+                (let ((keep (filter (lambda (x) (not (selected? x))) ls))
+                      (wrong (car (filter (lambda (x) (selected? x)) ls))))
+                  (set! ls (cons (create-obj (get-tag wrong) #f (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
+                        keep))
+                )
+                (update-message)))
           '()))
     ; Call the superclass init, passing on all init args
     (super-new)))
-
+ 
 ; Make a canvas that handles events in the frame
 (define can (new my-canvas%
                  [parent frame]
                  [paint-callback
                   (lambda (canvas dc)
-                    ;Display red block
-                    (send dc set-brush "red" 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc draw-rectangle 20 20 30 30)
-                    ;Display green block
-                    (send dc set-brush "green" 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc draw-rectangle 20 70 30 30)
-                    ;Display blue block
-                    (send dc set-brush "blue" 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc draw-rectangle 20 120 30 30)
-                    )
-]))
-
+                    (disp-primitive-types)
+                    )]))
 
 (send frame show #t)
 
@@ -135,3 +132,4 @@
           (send dc set-pen "black" 1 'solid)
           (send dc draw-rectangle 20 120 30 30)
           )))
+(disp-primitive-types)
