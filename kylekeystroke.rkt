@@ -1,16 +1,13 @@
-
 #lang racket/gui
 (require racket/gui/base)
 (require racket/gui/base)
 (require racket/draw)
 
 
-;test object for getter procedures
-(define cell (cons (list 'cons #f (cons 10 15) (cons 30 30)) 'red)) 
-(define ls (list cell)) ;master list of objects
-(display cell)
+;; Master list of objects
+(define ls '())
 
-;Getter procedures
+;; Get procedures for data objects
 (define (get-data obj)   (cdr obj))
 (define (get-tag obj)    (caar obj))
 (define (selected? obj)  (cadar obj))
@@ -28,22 +25,42 @@
                    [width 600]
                    [height 600]))
 
+;; CREATE AN OBJECT AND RETURN IT
 (define (create-obj tag selected pos size data)
   (cons (list tag selected pos size) data))
 
-(define (draw-cons canvas cell)
-  (send canvas refresh-now (lambda (dc)
-                             (send dc set-brush "red" 'solid)
-                             (send dc set-pen "black" 1 'solid)
-                             (send dc draw-rectangle 10 10 20 20))))
+;; ADD AN OBJECT TO THE LIST
+(define (add-obj-to-list obj)
+  (set! ls (cons obj ls)))
 
+;; OBJECTS FOR TESTING LIST
+(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) 'green))
+(add-obj-to-list (create-obj 'primitive #t (cons 150 150) (cons 30 30) 'red))
+(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) 'blue))
+
+;; DISPLAY THE CURRENT LIST IN THE CANVAS
+(define (display-list canvas)
+  (send canvas
+        refresh-now
+        (lambda (dc)
+          (define (iter ls)
+            (if (null? ls)
+                (disp-menu dc)
+                (begin
+                    (send dc set-brush (symbol->string (get-data (car ls))) 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc
+                          draw-rectangle
+                          (get-x (car ls))
+                          (get-y (car ls))
+                          (get-mylength (car ls))
+                          (get-mywidth (car ls)))
+                    (iter (cdr ls)))))
+          (iter ls)))
+  ) ;; END OF DISPLAY-LIST
 
 (define (move-square x y)
-  (send can refresh-now (lambda (dc)
-                                (disp-primitive-types)  
-                                (send dc set-brush "red" 'solid)  
-                                (send dc set-pen "black" 1 'solid)
-                                (send dc draw-rectangle x y 30 30))))
+  (display-list can))
 ; Start of Kyle's code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define mouse-x 0)
@@ -53,7 +70,7 @@
   (class canvas% ; The base class is canvas%(send message set-label (string-append "Selected:     " (symbol->string (get-tag ())
     (inherit get-width get-height refresh)
     ; Define overriding method to handle mouse events
-    (define direction #f)
+
     (define message
       (new message%
          [label "Selected:     Nothing"]
@@ -126,15 +143,26 @@
                  [parent frame]
                  [paint-callback
                   (lambda (canvas dc)
-                    (disp-primitive-types)
-                    )]))
+                    ;Display red block
+                    (send dc set-brush "red" 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc draw-rectangle 20 20 30 30)
+                    ;Display green block
+                    (send dc set-brush "green" 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc draw-rectangle 20 70 30 30)
+                    ;Display blue block
+                    (send dc set-brush "blue" 'solid)
+                    (send dc set-pen "black" 1 'solid)
+                    (send dc draw-rectangle 20 120 30 30)
+                    )
+]))
 
 (send frame show #t)
 
-(define (disp-primitive-types)
-  (send can
-        refresh-now
-        (lambda (dc)
+;; DISP-MENU
+;; send the menu with primitive types to the canvas
+(define (disp-menu dc)
           ;Display red block
           (send dc set-brush "red" 'solid)
           (send dc set-pen "black" 1 'solid)
@@ -147,5 +175,4 @@
           (send dc set-brush "blue" 'solid)
           (send dc set-pen "black" 1 'solid)
           (send dc draw-rectangle 20 120 30 30)
-          )))
-(disp-primitive-types)
+  ) ;; END OF DISP-MENU
