@@ -1,3 +1,4 @@
+
 #lang racket/gui
 (require racket/gui/base)
 (require racket/gui/base)
@@ -6,7 +7,7 @@
 (define ls '()) ;master list of objects
 
 ;test object for getter procedures
-(define cell (cons (list 'cons #f (cons 10 15) (cons 30 30)) 'red)) 
+(define cell (cons (list 'cons #t (cons 10 15) (cons 30 30)) 'red)) 
 
 ;Getter procedures
 (define (get-tag obj)    (caar obj))
@@ -22,15 +23,6 @@
                    [label "Scratchket"]
                    [width 600]
                    [height 600]))
-;(define mycanvas (new canvas% [parent frame]
-;             [paint-callback
-;              (lambda (canvas dc)
-;                (send dc set-scale 3 3)
-
-;                (send dc draw-rectangle 0 10 20 20); x y width height
-                ;(send dc draw-rectangle 20 10 20 20)
-;                )]))
-
 
 (define (draw-cons canvas cell)
   (send canvas refresh-now (lambda (dc)
@@ -98,15 +90,12 @@
     (super-new)))
  
 ; Make a canvas that handles events in the frame
-(define can (new my-canvas% [parent frame]
+(define can (new my-canvas%
+                 [parent frame]
                  [paint-callback
-              (lambda (canvas dc)
-                ;(send dc set-scale 3 3)
-                ;(send dc set-brush "red" 'solid)
-                ;(send dc set-pen "black" 1 'solid)
-                ;(send dc draw-rectangle 0 30 30 30); x y width height
-                ;(send dc draw-rectangle 20 10 20 20)
-             )]))
+                  (lambda (canvas dc)
+                    (disp-primitive-types)
+                    )]))
 
 (send frame show #t)
 
