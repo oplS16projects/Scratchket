@@ -46,7 +46,8 @@ Our first goal is to get the GUI working. Since a graphical representation of th
 
 
 ### First Milestone (Fri Apr 15)
-We will be turning in a finished user interface. Objects will exist, be selectable, and moveable.
+<strike>We will be turning in a finished user interface. Objects will exist, be selectable, and moveable.</strike>
+UPDATE 4/15: We have created a GUI that works with primitives only. Complex data structures do not exist on the display yet, but we have laid the foundation to build them internally. We have a small menu of items on the left. When one of the primitive menu items is selected, it creates a primitive data object that you can select and move.
 
 ### Second Milestone (Fri Apr 22)
 We will be turning in an internal representation of the data structures that are linked to displayed structures.
