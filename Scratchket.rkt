@@ -17,14 +17,10 @@
 (define (menu-item? obj)   (cadddr (cdar obj)))
 (define (get-input  obj)   (cadddr (cddar obj)))
 
-
-(define (input-count obj)
-  (define (iter lst count)
-    (if (null? lst)
-        count
-        (iter (cdr lst) (+ 1 count))))
-  (iter (get-input obj) 0))
-
+(define (get-machines)
+  (if (null? (filter (lambda (x) (eq? (get-tag x) 'machine)) ls))
+             #f
+             (filter (lambda (x) (eq? (get-tag x) 'machine)) ls)))
 
 (define (get-selected)
     (if (null? (filter (lambda (x) (selected? x)) ls))
@@ -36,6 +32,13 @@
                    [width 600]
                    [height 600]))
 
+(define (get-machine-in-range)
+  (define (iter machines)
+    (cond ((null? machines) 'ERROR)
+          ((in-range (car machines)) (car machines))
+          (else (iter (cdr machines)))))
+  (iter (get-machines)))
+
 ;; CREATE AN OBJECT AND RETURN IT
 (define (create-obj tag selected pos size menu-item input data)
   (cons (list tag selected pos size menu-item input) data))
@@ -46,7 +49,7 @@
   
 ;; Add input to a machine - returns #f if unable to add input or
 ;;                          returns a new machine with the input added to the machine.
-(define (add-input-to-machine machine input)
+(define (add-input-to-machine machine input lst)
   (let ((tag (get-tag      machine))
         (sel (selected?    machine))
         (x   (get-x        machine))
@@ -56,7 +59,7 @@
         (men (menu-item?   machine))
         (dat (get-data     machine))
         (in  (get-input    machine)))
-    (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat)))
+    (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))))
 
 
 ;; ADD OBJECTS TO LIST FOR THE MENU
@@ -190,11 +193,13 @@
 
 
 (define (in-range x)
-  (and
-   (<= (get-x x) mouse-x)
-   (>= (+ (get-x x) (get-mywidth x)) mouse-x)
-   (<= (get-y x) mouse-y)
-   (>= (+ (get-y x) (get-mylength x)) mouse-y)))
+  (if (eq? 'ERROR x)
+      #f
+      (and
+       (<= (get-x x) mouse-x)
+       (>= (+ (get-x x) (get-mywidth x)) mouse-x)
+       (<= (get-y x) mouse-y)
+       (>= (+ (get-y x) (get-mylength x)) mouse-y))))
 
 (define (get-object-in-range)
   (let ((x (filter in-range ls)))
@@ -210,10 +215,7 @@
 
 
 (define my-canvas%
-  (class canvas% ; The base class is canvas%(send message set-label (string-append "Selected:     " (symbol->string (get-tag ())
-    (inherit get-width get-height refresh)
-    ; Define overriding method to handle mouse events
-
+  (class canvas% 
     (define message
       (new message%
          [label "Selected:     Nothing"]
@@ -238,7 +240,6 @@
                                                    ""))))))
 
 
-    
     (define/override (on-event event)
        ;Grab the x and y coords
       (set! mouse-x (send event get-x))
@@ -256,7 +257,7 @@
                   (l     (if change (get-mylength change) '()))
                   (w     (if change (get-mywidth change)  '()))
                   (data  (if change (get-data change)     '())))
-              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
+              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f '() data))
                      (display-list can))))
 
         ; Moves an object if it is selected
@@ -268,7 +269,12 @@
                   (w    (get-mywidth  selected))
                   (data (get-data     selected)))
               (begin
-                (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f data) keep))
+                (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))
+                (if (and (in-range (get-machine-in-range))
+                         (in-range selected))
+                    (add-input-to-machine (get-machine-in-range) selected all-but)
+                    (display 'failed))
+                (update-message)
                 (display-list can))))
 
         ; Selects an item if nothing is selected
@@ -280,7 +286,7 @@
                   (w     (if change (get-mywidth change)  '()))
                   (data  (if change (get-data change)     '())))
               (begin
-                (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
+                (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f (get-input change) data) all-but))
                 (display-list can))))
 
         ; Deselects a selected item
@@ -292,7 +298,7 @@
                   (w    (get-mywidth  selected))
                   (data (get-data     selected)))
               (begin
-                (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f data) keep))
+                (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f (get-input selected) data) keep))
                 (display-list can))))
           
           
@@ -355,4 +361,3 @@
 (display-list can)
 (send frame show #t)
 (display-list can)
-
