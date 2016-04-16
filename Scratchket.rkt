@@ -21,7 +21,7 @@
 (define (get-mywidth obj)  (cdar (cdddar obj)))
 
 ;;;;;;;
-(define (menu-item? obj)   (cadddr (cdar obj))) 
+(define (menu-item? obj)   (cddar (cdddar obj))) 
 ;;;;;;;
 
 (define (get-selected)
@@ -60,9 +60,9 @@
 (initialize-list)
 
 ;; OBJECTS FOR TESTING LIST
-;(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) #f 'green))
-;(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) #f 'red))
-;(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) #f 'blue))
+(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) #f 'green))
+(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) #f 'red))
+(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) #f 'blue))
 ;;;;;;;;;;;;;
 ;;;;;;;;;;;;;
 
@@ -105,7 +105,9 @@
           (send dc set-pen "black" 1 'solid))
       (send dc draw-rectangle x y l w)
       (send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text " CONS" (+ x 9) y)
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text "CONS" (+ x 10) (+ y 2))
     
     )))
 
@@ -121,7 +123,9 @@
       (send dc set-pen "black" 1 'solid)
       (send dc draw-rectangle x y l w)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text t (+ x 12) (+ y 3))
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text t (+ x 9) (+ y 4))
     )))
 
 ;; SEND A TEXT OBJECT TO THE DISPLAY
@@ -136,7 +140,9 @@
       (send dc set-pen "black" 1 'solid)
       ;(send dc draw-rectangle x y l w)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text t (+ x 12) (+ y 3))
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text t (+ x 11) (+ y 3))
     )))
 
 ;; DISPLAY THE CURRENT LIST IN THE CANVAS
@@ -214,25 +220,15 @@
       (set! mouse-x (send event get-x))
       (set! mouse-y (send event get-y))
       (let ((keep     (get-objects-not-selected))
-            (change    (get-object-in-range))
+            (wrong    (get-object-in-range))
             (selected (get-selected))
             (all-but  (all-but-in-range)))
-;        (let ((tag   (if change (get-tag change)      '()))
-;              (x     (if change (get-x   change)      '()))
-;              (y     (if change (get-y   change)      '()))
-;              (l     (if change (get-mylength change) '()))
-;              (w     (if change (get-mywidth change)  '()))
-;              (data  (if change (get-data change)     '())))
-          
-          (define (menu-create-new)
-            (let ((tag   (if change (get-tag change)      '()))
-                  (x     (if change (get-x   change)      '()))
-                  (y     (if change (get-y   change)      '()))
-                  (l     (if change (get-mylength change) '()))
-                  (w     (if change (get-mywidth change)  '()))
-                  (data  (if change (get-data change)     '())))
-              (begin (add-obj-to-list (create-obj 'primitive #f (cons (+ x 130) y) (cons l w) #f data))
-                     (display-list can))))
+        (let ((tag   (if wrong (get-tag wrong)      '()))
+              (x     (if wrong (get-x   wrong)      '()))
+              (y     (if wrong (get-y   wrong)      '()))
+              (l     (if wrong (get-mylength wrong) '()))
+              (w     (if wrong (get-mywidth wrong)  '()))
+              (data  (if wrong (get-data wrong)     '())))
           
           (define (move-selected)
             (let ((tag  (get-tag      selected))
@@ -246,15 +242,9 @@
                 (display-list can))))
           
           (define (select-item)
-            (let ((tag   (if change (get-tag change)      '()))
-                  (x     (if change (get-x   change)      '()))
-                  (y     (if change (get-y   change)      '()))
-                  (l     (if change (get-mylength change) '()))
-                  (w     (if change (get-mywidth change)  '()))
-                  (data  (if change (get-data change)     '())))
-              (begin
-                (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
-                (display-list can))))
+            (begin
+              (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
+              (display-list can)))
           
           (define (deselect-item)
             (let ((tag  (get-tag      selected))
@@ -281,9 +271,8 @@
             (cond
               ; If something is selected, move it.
               (selected (move-selected))
-              ((and change (menu-item? change)) (menu-create-new))
               ; If nothing is selected, but something is in range, select it.
-              (change    (select-item))))
+              (wrong    (select-item))))
           
           
           (define (right-click-action)
@@ -298,7 +287,7 @@
          
           
           
-         ; ) ; END of let
+          ) ; END of let
     )) ;END let and define/override
 
 ; Call the superclass init, passing on all init args
