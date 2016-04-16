@@ -3,11 +3,6 @@
 (require racket/gui/base)
 (require racket/draw)
 
-;;;;;;; TO DO's for Kyle
-; Add (display-list can) to deselection
-; Add #f argument to the 3 create-obj calls in button clicking code
-; 
-
 ;; Master list of objects
 (define ls '())
 
@@ -19,10 +14,17 @@
 (define (get-y obj)        (cdr (caddar obj)))
 (define (get-mylength obj) (cdar (cdddar obj)))
 (define (get-mywidth obj)  (caar (cdddar obj)))
+(define (menu-item? obj)   (cadddr (cdar obj)))
+(define (get-input  obj)   (cadddr (cddar obj)))
 
-;;;;;;;
-(define (menu-item? obj)   (cadddr (cdar obj))) 
-;;;;;;;
+
+(define (input-count obj)
+  (define (iter lst count)
+    (if (null? lst)
+        count
+        (iter (cdr lst) (+ 1 count))))
+  (iter (get-input obj) 0))
+
 
 (define (get-selected)
     (if (null? (filter (lambda (x) (selected? x)) ls))
@@ -35,35 +37,47 @@
                    [height 600]))
 
 ;; CREATE AN OBJECT AND RETURN IT
-(define (create-obj tag selected pos size menu-item data)
-  (cons (list tag selected pos size menu-item) data))
+(define (create-obj tag selected pos size menu-item input data)
+  (cons (list tag selected pos size menu-item input) data))
 
 ;; ADD AN OBJECT TO THE LIST
 (define (add-obj-to-list obj)
   (set! ls (cons obj ls)))
+  
+;; Add input to a machine - returns #f if unable to add input or
+;;                          returns a new machine with the input added to the machine.
+(define (add-input-to-machine machine input)
+  (let ((tag (get-tag      machine))
+        (sel (selected?    machine))
+        (x   (get-x        machine))
+        (y   (get-y        machine))
+        (w   (get-mywidth  machine))
+        (l   (get-mylength machine))
+        (men (menu-item?   machine))
+        (dat (get-data     machine))
+        (in  (get-input    machine)))
+    (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat)))
 
-;;;;;;;;;;;
-;;;;;;;;;;;
-;;;;;;;;;;;
+
 ;; ADD OBJECTS TO LIST FOR THE MENU
 (define (initialize-list)
   (begin
     ; (create-obj tag selected pos size menu-item data)
     (set! ls '())
-    (add-obj-to-list (create-obj 'primitive #f (cons 25 20)  (cons 30 30) #t 'red))
-    (add-obj-to-list (create-obj 'primitive #f (cons 25 70)  (cons 30 30) #t 'green))
-    (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t 'blue))
-    (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t 'null))
-    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t 'cons ))
-    (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t 'RESET))
-    (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t 'MENU))))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 20)  (cons 30 30) #t '() 'red))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 70)  (cons 30 30) #t '() 'green))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t '() 'blue))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t '() 'null))
+    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t '() 'cons ))
+    (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t '() 'RESET))
+    (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t '() 'MENU))))
 
 (initialize-list)
 
 ;; OBJECTS FOR TESTING LIST
-;(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) #f 'green))
-;(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) #f 'red))
-;(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) #f 'blue))
+;(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) #f '() 'green))
+;(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) #f '() 'red))
+;(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) #f '() 'blue))
 ;;;;;;;;;;;;;
 ;;;;;;;;;;;;;
 
@@ -342,19 +356,3 @@
 (send frame show #t)
 (display-list can)
 
-;;; DISP-MENU
-;;; send the menu with primitive types to the canvas
-;(define (disp-menu dc)
-;          ;Display red block
-;          (send dc set-brush "red" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 20 30 30)
-;          ;Display green block
-;          (send dc set-brush "green" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 70 30 30)
-;          ;Display blue block
-;          (send dc set-brush "blue" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 120 30 30)
-;  ) ;; END OF DISP-MENU
