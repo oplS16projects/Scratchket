@@ -105,7 +105,9 @@
           (send dc set-pen "black" 1 'solid))
       (send dc draw-rectangle x y l w)
       (send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text " CONS" (+ x 9) y)
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text "CONS" (+ x 10) (+ y 2))
     
     )))
 
@@ -121,7 +123,9 @@
       (send dc set-pen "black" 1 'solid)
       (send dc draw-rectangle x y l w)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text t (+ x 12) (+ y 3))
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text t (+ x 9) (+ y 4))
     )))
 
 ;; SEND A TEXT OBJECT TO THE DISPLAY
@@ -136,7 +140,9 @@
       (send dc set-pen "black" 1 'solid)
       ;(send dc draw-rectangle x y l w)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text t (+ x 12) (+ y 3))
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text t (+ x 11) (+ y 3))
     )))
 
 ;; DISPLAY THE CURRENT LIST IN THE CANVAS
