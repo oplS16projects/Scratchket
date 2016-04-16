@@ -66,7 +66,7 @@
     (add-obj-to-list (create-obj 'primitive #f (cons 25 70)  (cons 30 30) #t 'green))
     (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t 'blue))
     (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t 'null))
-    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t (cons 'cons '())))
+    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t 'cons ))
     (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t 'RESET))
     (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t 'MENU))))
 
@@ -238,7 +238,7 @@
 
     
     (define/override (on-event event)
-       ;Grab the x and y coords
+      ;Grab the x and y coords
       (set! mouse-x (send event get-x))
       (set! mouse-y (send event get-y))
       (let ((keep     (get-objects-not-selected))
@@ -247,94 +247,90 @@
             (all-but  (all-but-in-range)))
         
         ; Creates new object if we select the menu item
-          (define (menu-create-new)
-            (let ((tag   (if change (get-tag change)      '()))
-                  (x     (if change (get-x   change)      '()))
-                  (y     (if change (get-y   change)      '()))
-                  (l     (if change (get-mylength change) '()))
-                  (w     (if change (get-mywidth change)  '()))
-                  (data  (if change (get-data change)     '())))
-              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
-                     (display-list can))))
-
+        (define (menu-create-new)
+          (let ((tag   (if change (get-tag change)      '()))
+                (x     (if change (get-x   change)      '()))
+                (y     (if change (get-y   change)      '()))
+                (l     (if change (get-mylength change) '()))
+                (w     (if change (get-mywidth change)  '()))
+                (data  (if change (get-data change)     '())))
+            (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
+                   (display-list can))))
+        
         ; Moves an object if it is selected
-          (define (move-selected)
-            (let ((tag  (get-tag      selected))
-                  (x    (get-x        selected))
-                  (y    (get-y        selected))
-                  (l    (get-mylength selected))
-                  (w    (get-mywidth  selected))
-                  (data (get-data     selected)))
-              (begin
-                (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
-                       (display-list can))))
-
+        (define (move-selected)
+          (let ((tag  (get-tag      selected))
+                (x    (get-x        selected))
+                (y    (get-y        selected))
+                (l    (get-mylength selected))
+                (w    (get-mywidth  selected))
+                (data (get-data     selected)))
+            (begin
+              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
+                     (display-list can)))))
+        
         ; Selects an item if nothing is selected
-          (define (select-item)
-            (let ((tag   (if change (get-tag change)      '()))
-                  (x     (if change (get-x   change)      '()))
-                  (y     (if change (get-y   change)      '()))
-                  (l     (if change (get-mylength change) '()))
-                  (w     (if change (get-mywidth change)  '()))
-                  (data  (if change (get-data change)     '())))
-              (begin
-                (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
-                (display-list can))))
-
+        (define (select-item)
+          (let ((tag   (if change (get-tag change)      '()))
+                (x     (if change (get-x   change)      '()))
+                (y     (if change (get-y   change)      '()))
+                (l     (if change (get-mylength change) '()))
+                (w     (if change (get-mywidth change)  '()))
+                (data  (if change (get-data change)     '())))
+            (begin
+              (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
+              (display-list can))))
+        
         ; Deselects a selected item
-          (define (deselect-item)
-            (let ((tag  (get-tag      selected))
-                  (x    (get-x        selected))
-                  (y    (get-y        selected))
-                  (l    (get-mylength selected))
-                  (w    (get-mywidth  selected))
-                  (data (get-data     selected)))
-              (begin
-                (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f data) keep))
-                (display-list can))))
-          
-          
-          ; Did the user left click?
-          (define (left-click?)
-            (send event button-down? 'left))
-          
-          ; Did the user right click?
-          (define (right-click?)
-            (send event button-down? 'right))
-          
-          ; What occurs when the left click is pressed
-          (define (left-click-action)
-            (cond
-              ; If something is selected, move it.
-              (selected (move-selected))
-              ; If someting is in range of the mouse and is the reset button,
-              ; reset the list and refresh the canvas
-              ((and change (menu-item? change) (eq? 'RESET (get-data change)))
-               (begin
-                 (initialize-list)
-                 (display-list can)))
-              ; If something is in range of the mouse and is a menu item, create a new object
-              ((and change (menu-item? change)) (menu-create-new))
-              ; If nothing is selected, but something is in range, select it.
-              (change    (begin
-                           (select-item)
-                           (update-message)))))
-          
-          
-          (define (right-click-action)
-            ; If something is selected, deselect it
-            (cond (selected (begin
-                              (deselect-item)
-                              (update-message)))))
-          
-         
-          ; If the user left clicks, take the left click action
-          ; If the user right clicks, take the right click action
-          (cond ((left-click?)  (left-click-action))
-                ((right-click?) (right-click-action)))
-         
-          
-          
+        (define (deselect-item)
+          (let ((tag  (get-tag      selected))
+                (x    (get-x        selected))
+                (y    (get-y        selected))
+                (l    (get-mylength selected))
+                (w    (get-mywidth  selected))
+                (data (get-data     selected)))
+            (begin
+              (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f data) keep))
+              (display-list can))))
+        
+        
+        ; Did the user left click?
+        (define (left-click?)
+          (send event button-down? 'left))
+        
+        ; Did the user right click?
+        (define (right-click?)
+          (send event button-down? 'right))
+        
+        ; What occurs when the left click is pressed
+        (define (left-click-action)
+          (cond
+            ; If something is selected, move it.
+            (selected (move-selected))
+            ; If someting is in range of the mouse and is the reset button,
+            ; reset the list and refresh the canvas
+            ((and change (menu-item? change) (eq? 'RESET (get-data change)))
+             (begin
+               (initialize-list)
+               (display-list can)))
+            ; If something is in range of the mouse and is a menu item, create a new object
+            ((and change (menu-item? change)) (menu-create-new))
+            ; If nothing is selected, but something is in range, select it.
+            (change (begin
+                      (select-item)
+                      (update-message)))))
+        
+        
+        (define (right-click-action)
+          ; If something is selected, deselect it
+          (cond (selected (begin
+                            (deselect-item)
+                            (update-message)))))
+        
+        ; If the user left clicks, take the left click action
+        ; If the user right clicks, take the right click action
+        (cond ((left-click?)  (left-click-action))
+              ((right-click?) (right-click-action)))  
          ; ) ; END of let
     )) ;END let and define/override
 
@@ -346,27 +342,6 @@
                  [parent frame]
                  [paint-callback
                   (lambda (canvas dc)
-                    (display-list can)
-                    )
-]
-                 ))
+                    (display-list can))]))
 (display-list can)
 (send frame show #t)
-(display-list can)
-
-;;; DISP-MENU
-;;; send the menu with primitive types to the canvas
-;(define (disp-menu dc)
-;          ;Display red block
-;          (send dc set-brush "red" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 20 30 30)
-;          ;Display green block
-;          (send dc set-brush "green" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 70 30 30)
-;          ;Display blue block
-;          (send dc set-brush "blue" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 120 30 30)
-;  ) ;; END OF DISP-MENU
