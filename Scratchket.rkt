@@ -3,22 +3,31 @@
 (require racket/gui/base)
 (require racket/draw)
 
+;;;;;;; TO DO's for Kyle
+; Add (display-list can) to deselection
+; Add #f argument to the 3 create-obj calls in button clicking code
+; 
 
 ;; Master list of objects
 (define ls '())
 
 ;; Get procedures for data objects
-(define (get-data obj)   (cdr obj))
-(define (get-tag obj)    (caar obj))
-(define (selected? obj)  +(cadar obj))
-(define (get-x obj)      (car (caddar obj)))
-(define (get-y obj)      (cdr (caddar obj)))
+(define (get-data obj)     (cdr obj))
+(define (get-tag obj)      (caar obj))
+(define (selected? obj)    (cadar obj))
+(define (get-x obj)        (car (caddar obj)))
+(define (get-y obj)        (cdr (caddar obj)))
 (define (get-mylength obj) (caar (cdddar obj)))
 (define (get-mywidth obj)  (cdar (cdddar obj)))
+
+;;;;;;;
+(define (menu-item? obj)   (cddar (cdddar obj))) 
+;;;;;;;
+
 (define (get-selected)
-  (if (null? (filter (lambda (x) (selected? x)) ls))
-      '()
-      (car (filter (lambda (x) (selected? x))  ls))))
+    (if (null? (filter (lambda (x) (selected? x)) ls))
+        #f
+        (car (filter (lambda (x) (selected? x))  ls))))
   
 (define frame (new frame%
                    [label "Scratchket"]
@@ -26,22 +35,109 @@
                    [height 600]))
 
 ;; CREATE AN OBJECT AND RETURN IT
-(define (create-obj tag selected pos size data)
-  (cons (list tag selected pos size) data))
+(define (create-obj tag selected pos size menu-item data)
+  (cons (list tag selected pos size menu-item) data))
 
 ;; ADD AN OBJECT TO THE LIST
 (define (add-obj-to-list obj)
   (set! ls (cons obj ls)))
 
-;; PRIMITIVES FOR THE MENU
-(add-obj-to-list (create-obj 'menu #f (cons 20 20)  (cons 30 30) 'red))
-(add-obj-to-list (create-obj 'menu #f (cons 20 70)  (cons 30 30) 'green))
-(add-obj-to-list (create-obj 'menu #f (cons 20 120) (cons 30 30) 'blue))
+;;;;;;;;;;;
+;;;;;;;;;;;
+;;;;;;;;;;;
+;; ADD OBJECTS TO LIST FOR THE MENU
+(define (initialize-list)
+  (begin
+    ; (create-obj tag selected pos size menu-item data)
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 20)  (cons 30 30) #t 'red))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 70)  (cons 30 30) #t 'green))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t 'blue))
+    (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t 'null))
+    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t 'cons))
+    (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t 'RESET))
+    (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t 'MENU))))
+
+(initialize-list)
 
 ;; OBJECTS FOR TESTING LIST
-(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) 'green))
-(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) 'red))
-(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) 'blue))
+(add-obj-to-list (create-obj 'primitive #f (cons 100 100) (cons 30 30) #f 'green))
+(add-obj-to-list (create-obj 'primitive #f (cons 150 150) (cons 30 30) #f 'red))
+(add-obj-to-list (create-obj 'primitive #f (cons 300 400) (cons 30 30) #f 'blue))
+;;;;;;;;;;;;;
+;;;;;;;;;;;;;
+
+
+;; SEND A PRIMITIVE OBJECT TO THE DISPLAY
+(define (send-primitive dc obj)
+  (begin
+    (let ((x (get-x obj))
+          (y (get-y obj))
+          (l (get-mylength obj))
+          (w (get-mywidth  obj))
+          (sym (get-data obj))
+          (color (if (eq? (get-data obj) 'null)
+                     "white"
+                     (symbol->string (get-data obj)))))
+      (send dc set-brush color 'solid)
+      (if (selected? obj)
+          (send dc set-pen "orange" 2 'solid)
+          (send dc set-pen "black" 1 'solid))
+      (send dc draw-rectangle x y l w)
+      (send dc set-pen "black" 2 'solid)
+      (if (eq? sym 'null)
+          (send dc draw-line
+                (+ x 1)  (+ y 29)
+                (+ x 29) (+ y 1))
+                
+          '())
+      )))
+
+;; SEND A MACHINE OBJECT TO THE DISPLAY
+(define (send-machine dc obj)
+  (let ((x (get-x obj))
+        (y (get-y obj))
+        (l (get-mylength obj))
+        (w (get-mywidth  obj)))
+    (begin
+      (send dc set-brush "gray" 'solid)
+      (if (selected? obj)
+          (send dc set-pen "orange" 2 'solid)
+          (send dc set-pen "black" 1 'solid))
+      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle (+ x 9) y 41 16)
+      (send dc draw-text " CONS" (+ x 9) y)
+    
+    )))
+
+;; SEND A BUTTON OBJECT TO THE DISPLAY
+(define (send-button dc obj)
+  (let ((x (get-x obj))
+        (y (get-y obj))
+        (l (get-mylength obj))
+        (w (get-mywidth  obj))
+        (t (symbol->string (get-data obj))))
+    (begin
+      (send dc set-brush "yellow" 'solid)
+      (send dc set-pen "black" 1 'solid)
+      (send dc draw-rectangle x y l w)
+      ;(send dc draw-rectangle (+ x 9) y 41 16)
+      (send dc draw-text t (+ x 12) (+ y 3))
+    )))
+
+;; SEND A TEXT OBJECT TO THE DISPLAY
+(define (send-text dc obj)
+  (let ((x (get-x obj))
+        (y (get-y obj))
+        (l (get-mylength obj))
+        (w (get-mywidth  obj))
+        (t (symbol->string (get-data obj))))
+    (begin
+      (send dc set-brush "yellow" 'solid)
+      (send dc set-pen "black" 1 'solid)
+      ;(send dc draw-rectangle x y l w)
+      ;(send dc draw-rectangle (+ x 9) y 41 16)
+      (send dc draw-text t (+ x 12) (+ y 3))
+    )))
 
 ;; DISPLAY THE CURRENT LIST IN THE CANVAS
 (define (display-list canvas)
@@ -50,17 +146,14 @@
         (lambda (dc)
           (define (iter ls)
             (if (null? ls)
-                (display "done")
+                (display 'done)
                 (begin
-                    (send dc set-brush (symbol->string (get-data (car ls))) 'solid)
-                    (send dc set-pen "black" 1 'solid)
-                    (send dc
-                          draw-rectangle
-                          (get-x (car ls))
-                          (get-y (car ls))
-                          (get-mylength (car ls))
-                          (get-mywidth (car ls)))
-                    (iter (cdr ls)))))
+                  (let ((tag (get-tag (car ls))))
+                    (cond ((eq? tag 'primitive) (send-primitive dc (car ls)))
+                          ((eq? tag 'machine  ) (send-machine   dc (car ls)))
+                          ((eq? tag 'button   ) (send-button    dc (car ls)))
+                          ((eq? tag 'text     ) (send-text     dc (car ls)))))
+                  (iter (cdr ls)))))
           (iter ls)))
   ) ;; END OF DISPLAY-LIST
 
@@ -71,38 +164,32 @@
 (define mouse-x 0)
 (define mouse-y 0)
 
-; Checks if 2 objects are the same
-; Returns #t if they are, #f if they arent
-(define (item-equal? item1 item2)
-  (and (equal? (get-data item1) (get-data item2))
-           (equal? (get-tag item1) (get-tag item2))
-           (equal? (selected? item1) (selected? item2))
-           (equal? (get-x item1) (get-x item2))
-           (equal? (get-y item1) (get-y item2))
-           (equal? (get-mylength item1) (get-mylength item2))
-           (equal? (get-mywidth item1) (get-mywidth item2))))
 
-; Finds an item in the list, and removes it if it exists
-; Returns a new list without the removed item
-(define (delete-item lst item)
-  (define (iter remaining total)
-    (if (item-equal? (car remaining) item)
-        (cons (cdr remaining) total)
-        (iter (cdr remaining) (cons (car remaining) total))))
-  (iter lst '()))
+(define (in-range x)
+  (and
+   (<= (get-x x) mouse-x)
+   (>= (+ (get-x x) (get-mywidth x)) mouse-x)
+   (<= (get-y x) mouse-y)
+   (>= (+ (get-y x) (get-mylength x)) mouse-y)))
 
-; Checks if any object is in range of the mouse
-(define in-range (lambda (x)
-                              (and
-                                    (<= (get-x x) mouse-x)
-                                    (>= (+ (get-x x) (get-mywidth x)) mouse-x)
-                                    (<= (get-y x) mouse-y)
-                                    (>= (+ (get-y x) (get-mylength x)) mouse-y))))
-; Start canvas definition
+(define (get-object-in-range)
+  (let ((x (filter in-range ls)))
+    (if (null? x)
+        #f
+        (car x))))
+
+(define (get-objects-not-selected)
+  (filter (lambda (x) (not (selected? x))) ls))
+
+(define (all-but-in-range)
+  (filter (lambda (x) (not (in-range x))) ls))
+
+
 (define my-canvas%
-  (class canvas% 
+  (class canvas% ; The base class is canvas%(send message set-label (string-append "Selected:     " (symbol->string (get-tag ())
     (inherit get-width get-height refresh)
-    ; The selection: message
+    ; Define overriding method to handle mouse events
+
     (define message
       (new message%
          [label "Selected:     Nothing"]
@@ -112,63 +199,94 @@
 
     ; Updates the message to the currently selected item
     (define update-message
-      (lambda ()
-        (let ((return (get-selected)))
-          (send message set-label (string-append "Selected:     "
-                                                 (if (not (null? return))
-                                                     (symbol->string
-                                                      (get-tag return))
-                                                     "Nothing"))))))
+         (lambda ()
+           (let ((return (get-selected)))
+           (send message set-label (string-append "Selected:     "
+                                               (if (not (null? return))
+                                                   (symbol->string
+                                                    (get-tag return))
+                                                   "Nothing"))))))
+
+
     
-    ; Start of mouse/keyboard handling 
     (define/override (on-event event)
-      ; Grab the x and y coords
+       ;Grab the x and y coords
       (set! mouse-x (send event get-x))
       (set! mouse-y (send event get-y))
-      
-      ; Left mouse button handling
-      (if (send event button-down? 'left)
+      (let ((keep     (get-objects-not-selected))
+            (wrong    (get-object-in-range))
+            (selected (get-selected))
+            (all-but  (all-but-in-range)))
+        (let ((tag   (if wrong (get-tag wrong)      '()))
+              (x     (if wrong (get-x   wrong)      '()))
+              (y     (if wrong (get-y   wrong)      '()))
+              (l     (if wrong (get-mylength wrong) '()))
+              (w     (if wrong (get-mywidth wrong)  '()))
+              (data  (if wrong (get-data wrong)     '())))
           
-          ; If there isnt anything selected, select. else, move
-          (if (and (null? (get-selected)) (not (null? (filter in-range ls))))
-
-              ; If true, select the object
-              (let ((keep (filter (lambda (x) (not (selected? x))) ls))
-                    (change (car (filter in-range ls))))
-                (set! ls (cons (create-obj (get-tag change) #t (cons (get-x change) (get-y change)) (cons (get-mylength change) (get-mywidth change)) (get-data change))
-                                  (delete-item keep change))))
-              ; Else
-              ; Go to the movement stage of the nested if's              
-              ; If something is already selected, move it
-              (if (not (null? (get-selected))) 
-                  (begin 
-                    (update-message)
-                    (let ((keep (filter (lambda (x) (not (selected? x))) ls))
-                          (wrong (car (filter (lambda (x) (selected? x)) ls))))
-                      ;the set to create the new object
-                      (set! ls (cons (create-obj (get-tag wrong) #t (cons mouse-x mouse-y) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
-                                     keep)))
-                    (display-list can))
-                  (update-message))
-              )
-          '())
-      
-      ; Right mouse button handling
-      (if (send event button-down? 'right)
-          (if (null? (get-selected))
-              (update-message)
+          (define (move-selected)
+            (let ((tag  (get-tag      selected))
+                  (x    (get-x        selected))
+                  (y    (get-y        selected))
+                  (l    (get-mylength selected))
+                  (w    (get-mywidth  selected))
+                  (data (get-data     selected)))
               (begin
-                (let ((keep (filter (lambda (x) (not (selected? x))) ls))
-                      (wrong (car (filter (lambda (x) (selected? x)) ls))))
-                  (set! ls (cons (create-obj (get-tag wrong) #f (cons (get-x wrong) (get-y wrong)) (cons (get-mylength wrong) (get-mywidth wrong)) (get-data wrong))
-                                 (delete-item keep wrong)))
-                  )
-                (update-message)))
-          '()))
-      
-    ; Call the superclass init, passing on all init args
-    (super-new)))
- 
+                (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f data) keep))
+                (display-list can))))
+          
+          (define (select-item)
+            (begin
+              (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
+              (display-list can)))
+          
+          (define (deselect-item)
+            (let ((tag  (get-tag      selected))
+                  (x    (get-x        selected))
+                  (y    (get-y        selected))
+                  (l    (get-mylength selected))
+                  (w    (get-mywidth  selected))
+                  (data (get-data     selected)))
+              (begin
+                (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f data) keep))
+                (display-list can))))
+          
+          
+          ; Did the user left click?
+          (define (left-click?)
+            (send event button-down? 'left))
+          
+          ; Did the user right click?
+          (define (right-click?)
+            (send event button-down? 'right))
+          
+          
+          (define (left-click-action)
+            (cond
+              ; If something is selected, move it.
+              (selected (move-selected))
+              ; If nothing is selected, but something is in range, select it.
+              (wrong    (select-item))))
+          
+          
+          (define (right-click-action)
+            ; If something is selected, deselect it
+            (cond (selected (deselect-item))))
+          
+         
+          ; If the user left clicks, take the left click action
+          ; If the user right clicks, take the right click action
+          (cond ((left-click?)  (left-click-action))
+                ((right-click?) (right-click-action)))
+         
+          
+          
+          ) ; END of let
+    )) ;END let and define/override
+
+; Call the superclass init, passing on all init args
+(super-new))) 
+
 ; Make a canvas that handles events in the frame
 (define can (new my-canvas%
                  [parent frame]
