@@ -23,7 +23,11 @@
 ;;;;;;;
 (define (menu-item? obj)   (cadddr (cdar obj))) 
 ;;;;;;;
-
+(define (get-machines)
+  (if (null? (filter (lambda (x) (eq? (get-tag x) 'machine)) ls))
+             #f
+             (filter (lambda (x) (eq? (get-tag x) 'machine)) ls)))
+             
 (define (get-selected)
     (if (null? (filter (lambda (x) (selected? x)) ls))
         #f
@@ -33,7 +37,14 @@
                    [label "Scratchket"]
                    [width 600]
                    [height 600]))
-
+  
+(define (get-machine-in-range obj)
+  (define (iter machines)
+    (cond ((null? machines) #f)
+          ((in-range (car machines)) (car machines))
+          (else (iter (cdr machines)))))
+  (iter (get-machines)))
+  
 ;; CREATE AN OBJECT AND RETURN IT
 (define (create-obj tag selected pos size menu-item data)
   (cons (list tag selected pos size menu-item) data))
@@ -41,6 +52,7 @@
 ;; ADD AN OBJECT TO THE LIST
 (define (add-obj-to-list obj)
   (set! ls (cons obj ls)))
+
 
 ;;;;;;;;;;;
 ;;;;;;;;;;;
@@ -83,7 +95,7 @@
       (if (selected? obj)
           (send dc set-pen "orange" 2 'solid)
           (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle x y w l)
       (send dc set-pen "black" 2 'solid)
       (if (eq? sym 'null)
           (send dc draw-line
@@ -254,8 +266,8 @@
                   (w    (get-mywidth  selected))
                   (data (get-data     selected)))
               (begin
-                (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f data) keep))
-                (display-list can))))
+                (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
+                       (display-list can))))
 
         ; Selects an item if nothing is selected
           (define (select-item)
