@@ -17,8 +17,8 @@
 (define (selected? obj)    (cadar obj))
 (define (get-x obj)        (car (caddar obj)))
 (define (get-y obj)        (cdr (caddar obj)))
-(define (get-mylength obj) (caar (cdddar obj)))
-(define (get-mywidth obj)  (cdar (cdddar obj)))
+(define (get-mylength obj) (cdar (cdddar obj)))
+(define (get-mywidth obj)  (caar (cdddar obj)))
 
 ;;;;;;;
 (define (menu-item? obj)   (cadddr (cdar obj))) 
@@ -55,7 +55,7 @@
     (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t 'blue))
     (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t 'null))
     (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t 'cons))
-    (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t 'RESET))
+    (add-obj-to-list (create-obj 'button    #f (cons 10 400) (cons 60 20) #t 'RESET))
     (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t 'MENU))))
 
 (initialize-list)
@@ -83,7 +83,7 @@
       (if (selected? obj)
           (send dc set-pen "orange" 2 'solid)
           (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle x y w l)
       (send dc set-pen "black" 2 'solid)
       (if (eq? sym 'null)
           (send dc draw-line
@@ -104,7 +104,7 @@
       (if (selected? obj)
           (send dc set-pen "orange" 2 'solid)
           (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle x y w l)
       (send dc draw-rectangle (+ x 9) y 41 16)
       (send dc draw-text " CONS" (+ x 9) y)
     
@@ -120,9 +120,10 @@
     (begin
       (send dc set-brush "yellow" 'solid)
       (send dc set-pen "black" 1 'solid)
-      (send dc draw-rectangle x y l w)
-      ;(send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc draw-text t (+ x 12) (+ y 3))
+      (send dc draw-rectangle x y w l)
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                             #:weight 'bold))
+      (send dc draw-text t (+ x 12) (+ y 4))
     )))
 
 ;; SEND A TEXT OBJECT TO THE DISPLAY
@@ -135,8 +136,8 @@
     (begin
       (send dc set-brush "yellow" 'solid)
       (send dc set-pen "black" 1 'solid)
-      ;(send dc draw-rectangle x y l w)
-      ;(send dc draw-rectangle (+ x 9) y 41 16)
+      (send dc set-font (make-font #:size 14 #:family 'roman
+                                   #:weight 'bold))
       (send dc draw-text t (+ x 12) (+ y 3))
     )))
 
@@ -322,21 +323,3 @@
                  ))
 (display-list can)
 (send frame show #t)
-(display-list can)
-
-;;; DISP-MENU
-;;; send the menu with primitive types to the canvas
-;(define (disp-menu dc)
-;          ;Display red block
-;          (send dc set-brush "red" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 20 30 30)
-;          ;Display green block
-;          (send dc set-brush "green" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 70 30 30)
-;          ;Display blue block
-;          (send dc set-brush "blue" 'solid)
-;          (send dc set-pen "black" 1 'solid)
-;          (send dc draw-rectangle 20 120 30 30)
-;  ) ;; END OF DISP-MENU
