@@ -17,6 +17,15 @@
 (define (menu-item? obj)   (cadddr (cdar obj)))
 (define (get-input  obj)   (cadddr (cddar obj)))
 
+
+(define (input-count obj)
+  (define (iter lst count)
+    (if (null? lst)
+        count
+        (iter (cdr lst) (+ 1 count))))
+  (iter (get-input obj) 0))
+
+
 (define (get-selected)
     (if (null? (filter (lambda (x) (selected? x)) ls))
         #f
