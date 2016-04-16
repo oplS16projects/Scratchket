@@ -107,7 +107,8 @@
       (send dc draw-rectangle x y l w)
       (send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
-                             #:weight 'bold))
+                             #:weight 'bold
+                             #:size-in-pixels? #t))
       (send dc draw-text "CONS" (+ x 10) (+ y 2))
     
     )))
@@ -125,7 +126,8 @@
       (send dc draw-rectangle x y l w)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
-                             #:weight 'bold))
+                             #:weight 'bold
+                             #:size-in-pixels? #t))
       (send dc draw-text t (+ x 8) (+ y 4))
     )))
 
@@ -142,7 +144,8 @@
       ;(send dc draw-rectangle x y l w)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
-                             #:weight 'bold))
+                             #:weight 'bold
+                             #:size-in-pixels? #t))
       (send dc draw-text t (+ x 10) (+ y 3))
     )))
 
