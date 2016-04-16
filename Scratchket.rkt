@@ -203,10 +203,16 @@
          (lambda ()
            (let ((return (get-selected)))
            (send message set-label (string-append "Selected:     "
-                                               (if (not (null? return))
+                                               (if (not (eq? return #f))
+                                                   (string-append
+                                                    (symbol->string
+                                                     (get-tag return))
+                                                    " : ")
+                                                    "Nothing")
+                                               (if (not (eq? return #f))
                                                    (symbol->string
-                                                    (get-tag return))
-                                                   "Nothing"))))))
+                                                    (get-data return))
+                                                   ""))))))
 
 
     
@@ -218,13 +224,8 @@
             (change    (get-object-in-range))
             (selected (get-selected))
             (all-but  (all-but-in-range)))
-;        (let ((tag   (if change (get-tag change)      '()))
-;              (x     (if change (get-x   change)      '()))
-;              (y     (if change (get-y   change)      '()))
-;              (l     (if change (get-mylength change) '()))
-;              (w     (if change (get-mywidth change)  '()))
-;              (data  (if change (get-data change)     '())))
-          
+        
+        ; Creates new object if we select the menu item
           (define (menu-create-new)
             (let ((tag   (if change (get-tag change)      '()))
                   (x     (if change (get-x   change)      '()))
@@ -232,9 +233,10 @@
                   (l     (if change (get-mylength change) '()))
                   (w     (if change (get-mywidth change)  '()))
                   (data  (if change (get-data change)     '())))
-              (begin (add-obj-to-list (create-obj 'primitive #f (cons (+ x 130) y) (cons l w) #f data))
+              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f data))
                      (display-list can))))
-          
+
+        ; Moves an object if it is selected
           (define (move-selected)
             (let ((tag  (get-tag      selected))
                   (x    (get-x        selected))
@@ -245,7 +247,8 @@
               (begin
                 (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f data) keep))
                 (display-list can))))
-          
+
+        ; Selects an item if nothing is selected
           (define (select-item)
             (let ((tag   (if change (get-tag change)      '()))
                   (x     (if change (get-x   change)      '()))
@@ -256,7 +259,8 @@
               (begin
                 (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f data) all-but))
                 (display-list can))))
-          
+
+        ; Deselects a selected item
           (define (deselect-item)
             (let ((tag  (get-tag      selected))
                   (x    (get-x        selected))
@@ -277,12 +281,13 @@
           (define (right-click?)
             (send event button-down? 'right))
           
-          
+          ; What occurs when the left click is pressed
           (define (left-click-action)
             (cond
               ; If something is selected, move it.
               (selected (move-selected))
-              ; If someting is in range of the mouse and is the reset button, reset
+              ; If someting is in range of the mouse and is the reset button,
+              ; reset the list and refresh the canvas
               ((and change (menu-item? change) (eq? 'RESET (get-data change)))
                (begin
                  (initialize-list)
@@ -290,12 +295,16 @@
               ; If something is in range of the mouse and is a menu item, create a new object
               ((and change (menu-item? change)) (menu-create-new))
               ; If nothing is selected, but something is in range, select it.
-              (change    (select-item))))
+              (change    (begin
+                           (select-item)
+                           (update-message)))))
           
           
           (define (right-click-action)
             ; If something is selected, deselect it
-            (cond (selected (deselect-item))))
+            (cond (selected (begin
+                              (deselect-item)
+                              (update-message)))))
           
          
           ; If the user left clicks, take the left click action
