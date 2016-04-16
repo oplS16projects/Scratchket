@@ -17,8 +17,8 @@
 (define (selected? obj)    (cadar obj))
 (define (get-x obj)        (car (caddar obj)))
 (define (get-y obj)        (cdr (caddar obj)))
-(define (get-mylength obj) (caar (cdddar obj)))
-(define (get-mywidth obj)  (cdar (cdddar obj)))
+(define (get-mylength obj) (cdar (cdddar obj)))
+(define (get-mywidth obj)  (caar (cdddar obj)))
 
 ;;;;;;;
 (define (menu-item? obj)   (cadddr (cdar obj))) 
@@ -104,7 +104,7 @@
       (if (selected? obj)
           (send dc set-pen "orange" 2 'solid)
           (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle x y w l)
       (send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
                              #:weight 'bold
@@ -123,7 +123,7 @@
     (begin
       (send dc set-brush "yellow" 'solid)
       (send dc set-pen "black" 1 'solid)
-      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle x y w l)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
                              #:weight 'bold
