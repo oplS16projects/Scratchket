@@ -46,11 +46,11 @@ Our first goal is to get the GUI working. Since a graphical representation of th
 
 
 ### First Milestone (Fri Apr 15)
-<strike>We will be turning in a finished user interface. Objects will exist, be selectable, and moveable.</strike>
+<strike>We will be turning in a finished user interface. Objects will exist, be selectable, and moveable.</strike><br>
 UPDATE 4/15: We have created a GUI that works with primitives only. The internal structure for how all the objects is in place, and data abstraction for the structure exists and works. Complex data structures do not exist on the display yet, but we have laid the foundation to build them internally. We have a small menu of items on the left. When one of the primitive menu items is selected, it will eventually create a primitive data object that you can select and move (we have 3 primitive structures on the screen separate from the left column to compensate for now). There currently is a bug with the selection procedure, but it was not able to be fixed before the milestone, and will be tomorrow (4/16).
 
 ### Second Milestone (Fri Apr 22)
-<strike>We will be turning in an internal representation of the data structures that are linked to displayed structures.</strike>
+<strike>We will be turning in an internal representation of the data structures that are linked to displayed structures.</strike><br>
 UPDATE 4/23: Internal representations of the data structures is complete. Primitve types can be input into the cons machine. As primitives are input, lights turn on in the machine to indicate how many inputs it has. In order for the machine to work, a process button has been added. All processing is held off until this button is pushed. This was done so a machine's output can be the input for another machine. Unfortunately the cons machine only works with primitives for right now. Work needs to be done so a cons cell will expand in order to draw larger complex inputs within a cons cell. Lists should be done in time for the presentation as they should just be an implementation of the cons machine which is almost complete. In order to run our program you should only need to install the racket/draw package.
 
 ### Final Presentation (last week of semester)
