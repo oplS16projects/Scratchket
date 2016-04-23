@@ -3,6 +3,13 @@
 (require racket/gui/base)
 (require racket/draw)
 
+;; Create an object and return it
+(define (create-obj tag selected pos size menu-item input data)
+  (cons (list tag selected pos size menu-item input) data))
+
+;; Nil obj
+(define nil-obj (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t '() 'null))
+
 ;; Master list of objects
 (define ls '())
 
@@ -17,10 +24,24 @@
 (define (menu-item? obj)   (cadddr (cdar obj)))
 (define (get-input  obj)   (cadddr (cddar obj)))
 
+(define (count-inputs obj)
+  (define (iter count lst)
+    (if (null? lst)
+        count
+        (iter (+ count 1) (cdr lst))))
+  (iter 0 (get-input obj)))
+
 (define (get-machines)
   (if (null? (filter (lambda (x) (eq? (get-tag x) 'machine)) ls))
              #f
              (filter (lambda (x) (eq? (get-tag x) 'machine)) ls)))
+
+(define (get-non-machines)
+  (let ((non-machines (filter (lambda (x) (not (eq? (get-tag x) 'machine))) ls)))
+    (if (null? non-machines)
+        #f
+        non-machines)))
+
 
 (define (get-selected)
     (if (null? (filter (lambda (x) (selected? x)) ls))
@@ -39,9 +60,13 @@
           (else (iter (cdr machines)))))
   (iter (get-machines)))
 
-;; CREATE AN OBJECT AND RETURN IT
-(define (create-obj tag selected pos size menu-item input data)
-  (cons (list tag selected pos size menu-item input) data))
+
+
+; Create a cons object
+(define (create-cons pos in)
+  (create-obj 'cons #f pos (cons 60 30) #f in 'cons))
+
+(define create-list create-cons)
 
 ;; ADD AN OBJECT TO THE LIST
 (define (add-obj-to-list obj)
@@ -59,7 +84,11 @@
         (men (menu-item?   machine))
         (dat (get-data     machine))
         (in  (get-input    machine)))
-    (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))))
+    (if (and (eq? dat 'cons) (< (count-inputs machine) 2))
+        (begin
+          (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))
+          #t)
+        #f)))
 
 
 ;; ADD OBJECTS TO LIST FOR THE MENU
@@ -73,6 +102,7 @@
     (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t '() 'null))
     (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t '() 'cons ))
     (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t '() 'RESET))
+    (add-obj-to-list (create-obj 'button    #f (cons 10 400) (cons 60 20) #t '() 'PROCESS))
     (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t '() 'MENU))))
 
 (initialize-list)
@@ -100,12 +130,57 @@
       (if (selected? obj)
           (send dc set-pen "orange" 2 'solid)
           (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle x y l w)
+      (send dc draw-rectangle x y w l)
       (send dc set-pen "black" 2 'solid)
       (if (eq? sym 'null)
           (send dc draw-line
                 (+ x 1)  (+ y 29)
                 (+ x 29) (+ y 1))
+                
+          '())
+      )))
+
+
+;; Send a cons object to the display
+(define (send-cons dc obj)
+  (begin
+    (let ((x    (get-x         obj))
+          (y    (get-y         obj))
+          (l1   (get-mylength (car  (get-input obj))))
+          (w1   (get-mywidth  (car  (get-input obj))))
+          (sym1 (get-data     (car  (get-input obj))))
+          (l2   (get-mylength (cadr (get-input obj))))
+          (w2   (get-mywidth  (cadr (get-input obj))))
+          (sym2 (get-data     (cadr (get-input obj))))
+      
+          (color1 (if (eq? (car (get-input obj)) 'null)
+                      "white"
+                      (symbol->string (get-data (car (get-input obj))))))
+          (color2 (if (eq? (cadr (get-input obj)) 'null)
+                      "white"
+                      (symbol->string (get-data (cadr (get-input obj)))))))
+      (send dc set-brush color1 'solid)
+      (if (selected? obj)
+          (send dc set-pen "orange" 2 'solid)
+          (send dc set-pen "black" 1 'solid))
+      (send dc draw-rectangle x y w1 l1)
+      (send dc set-pen "black" 2 'solid)
+      (if (eq? sym1 'null)
+          (send dc draw-line
+                (+ x 1)  (+ y 29)
+                (+ x 29) (+ y 1))
+                
+          '())
+      (send dc set-brush color2 'solid)
+      (if (selected? obj)
+          (send dc set-pen "orange" 2 'solid)
+          (send dc set-pen "black" 1 'solid))
+      (send dc draw-rectangle (+ x 30) y w2 l2)
+      (send dc set-pen "black" 2 'solid)
+      (if (eq? sym2 'null)
+          (send dc draw-line
+                (+ x 31)  (+ y 29)
+                (+ x 59) (+ y 1))
                 
           '())
       )))
@@ -123,12 +198,24 @@
           (send dc set-pen "black" 1 'solid))
       (send dc draw-rectangle x y w l)
       (send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc set-font (make-font #:size 14 #:family 'roman
-                             #:weight 'bold
-                             #:size-in-pixels? #t))
+      (send dc set-font (make-font #:size 12
+                                   #:family 'roman
+                                   #:weight 'bold
+                                   #:size-in-pixels? #t))
       (send dc draw-text "CONS" (+ x 10) (+ y 2))
+      (send dc set-brush "yellow" 'solid)
+      (if (eq? (get-data obj) 'cons)
+          (cond ((= (count-inputs obj) 0) '())
+                ((= (count-inputs obj) 1)
+                 (send dc draw-rectangle (+ x 13) (+ y 40) 10 10))
+                (else 
+                 (begin
+                   (send dc draw-rectangle (+ x 13) (+ y 40) 10 10)
+                   (send dc draw-rectangle (+ x 36) (+ y 40) 10 10))))
+          '())
+            
     
-    )))
+    ))) ; End of send-machine
 
 ;; SEND A BUTTON OBJECT TO THE DISPLAY
 (define (send-button dc obj)
@@ -142,11 +229,12 @@
       (send dc set-pen "black" 1 'solid)
       (send dc draw-rectangle x y w l)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
-      (send dc set-font (make-font #:size 14 #:family 'roman
-                             #:weight 'bold
-                             #:size-in-pixels? #t))
+      (send dc set-font (make-font #:size 12
+                                   #:family 'roman
+                                   #:weight 'bold
+                                   #:size-in-pixels? #t))
       (send dc draw-text t (+ x 8) (+ y 4))
-    )))
+    ))) ; End of send-button
 
 ;; SEND A TEXT OBJECT TO THE DISPLAY
 (define (send-text dc obj)
@@ -158,13 +246,13 @@
     (begin
       (send dc set-brush "yellow" 'solid)
       (send dc set-pen "black" 1 'solid)
-      ;(send dc draw-rectangle x y l w)
+      ;(send dc draw-rectangle x y w l)
       ;(send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
                              #:weight 'bold
                              #:size-in-pixels? #t))
       (send dc draw-text t (+ x 10) (+ y 3))
-    )))
+    ))) ;End of send-text
 
 ;; DISPLAY THE CURRENT LIST IN THE CANVAS
 (define (display-list canvas)
@@ -173,19 +261,21 @@
         (lambda (dc)
           (define (iter ls)
             (if (null? ls)
-                (display 'done)
+                '()
                 (begin
                   (let ((tag (get-tag (car ls))))
                     (cond ((eq? tag 'primitive) (send-primitive dc (car ls)))
+                          ((eq? tag 'cons     ) (send-cons      dc (car ls)))
                           ((eq? tag 'machine  ) (send-machine   dc (car ls)))
                           ((eq? tag 'button   ) (send-button    dc (car ls)))
-                          ((eq? tag 'text     ) (send-text     dc (car ls)))))
+                          ((eq? tag 'text     ) (send-text      dc (car ls)))))
                   (iter (cdr ls)))))
           (iter ls)))
   ) ;; END OF DISPLAY-LIST
 
-(define (move-square x y)
-  (display-list can))
+;(define (move-square x y)
+;  (display-list can))
+
 ; Start of Kyle's code
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define mouse-x 0)
@@ -260,6 +350,12 @@
               (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f '() data))
                      (display-list can))))
 
+        ; Determines if something selected should be added as input to a machine
+        (define (add-as-input?)
+          (if (and selected change (eq? 'machine (get-tag change)))
+              #t
+              #f))
+
         ; Moves an object if it is selected
           (define (move-selected)
             (let ((tag  (get-tag      selected))
@@ -269,13 +365,17 @@
                   (w    (get-mywidth  selected))
                   (data (get-data     selected)))
               (begin
-                (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))
-                (if (and (in-range (get-machine-in-range))
-                         (in-range selected))
-                    (add-input-to-machine (get-machine-in-range) selected all-but)
-                    (display 'failed))
-                (update-message)
-                (display-list can))))
+                (cond ((add-as-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
+                                           (display "Added input to the cons machine")
+                                           (display "ERROR: You can't add more than 2 inputs to a cons machine")))
+                      (else (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))))
+                
+;                (if (and (in-range (get-machine-in-range))
+;                         (in-range selected))
+;                    (add-input-to-machine (get-machine-in-range) selected all-but)
+;                    (display 'failed))
+              (update-message)
+              (display-list can))))
 
         ; Selects an item if nothing is selected
           (define (select-item)
@@ -287,7 +387,8 @@
                   (data  (if change (get-data change)     '())))
               (begin
                 (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f (get-input change) data) all-but))
-                (display-list can))))
+                (display-list can)
+                (update-message))))
 
         ; Deselects a selected item
           (define (deselect-item)
@@ -299,9 +400,64 @@
                   (data (get-data     selected)))
               (begin
                 (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f (get-input selected) data) keep))
-                (display-list can))))
-          
-          
+                (display-list can)
+                (update-message))))
+
+        ; Was the reset button hit?
+        (define (reset?)
+          (and change (menu-item? change) (eq? 'RESET (get-data change))))
+
+        ; Reset all objects to original state
+        (define (reset)
+          (begin
+            (initialize-list)
+            (display-list can)))
+
+        ; Do you want to duplicate a menu item?
+        (define (dup-menu-item?)
+          (and change (menu-item? change)))
+
+        ;Was the process button pushes?
+        (define (process?)
+          (and change (menu-item? change) (eq? 'PROCESS (get-data change))))
+
+        (define (process non-machines machines)
+          (begin
+            (set! ls non-machines)
+            (define (iter machines)
+              (if (null? machines)
+                  '()
+                  (let ((tag   (get-tag      (car machines)))
+                        (x     (get-x        (car machines)))
+                        (y     (get-y        (car machines)))
+                        (l     (get-mylength (car machines)))
+                        (w     (get-mywidth  (car machines)))
+                        (data  (get-data     (car machines)))
+                        (sel   (selected?    (car machines)))
+                        (menu  (menu-item?   (car machines)))
+                        (in    (get-input    (car machines)))
+                        (numin (count-inputs (car machines)))
+                        (list  (if (and (not (null? (get-input (car machines)))) (equal? (car (get-input (car machines))) nil-obj))
+                                   #t
+                                   #f)))
+                    (begin
+                      (cond ((and (eq? data 'cons) (= numin 2)) (begin
+                                                                  (display "first cond!")
+                                                                  (add-obj-to-list (create-obj tag sel  (cons x y)  (cons w l) menu '() data))
+                                                                  (if list
+                                                                      (add-obj-to-list (create-list (cons (+ x 80) y) in))
+                                                                      (add-obj-to-list (create-cons (cons (+ x 80) y) in)))
+                                                                  (display-list can)))
+                            (else
+                             (begin
+                               (add-obj-to-list (create-obj tag sel  (cons x y)  (cons w l) menu '() data))
+                               (display "second cond!")
+                               (display-list can))))
+                      (iter (cdr machines))))))
+            
+            (iter machines)))
+            
+            
           ; Did the user left click?
           (define (left-click?)
             (send event button-down? 'left))
@@ -313,27 +469,17 @@
           ; What occurs when the left click is pressed
           (define (left-click-action)
             (cond
-              ; If something is selected, move it.
               (selected (move-selected))
-              ; If someting is in range of the mouse and is the reset button,
-              ; reset the list and refresh the canvas
-              ((and change (menu-item? change) (eq? 'RESET (get-data change)))
-               (begin
-                 (initialize-list)
-                 (display-list can)))
-              ; If something is in range of the mouse and is a menu item, create a new object
-              ((and change (menu-item? change)) (menu-create-new))
+              ((reset?) (reset))
+              ((process?) (process (get-non-machines) (get-machines)))
+              ((dup-menu-item?) (menu-create-new))
               ; If nothing is selected, but something is in range, select it.
-              (change    (begin
-                           (select-item)
-                           (update-message)))))
+              (change (select-item))))
           
           
           (define (right-click-action)
             ; If something is selected, deselect it
-            (cond (selected (begin
-                              (deselect-item)
-                              (update-message)))))
+            (cond (selected (deselect-item))))
           
          
           ; If the user left clicks, take the left click action
