@@ -167,44 +167,23 @@
       )))
 
 ;; Send a cons cell to the screen
-(define (send-cons dc obj sel x y)
+(define (send-cons dc obj x y)
   (let ((w    (car (get-size obj)))
         (l    (cdr (get-size obj)))
         (obj1 (car  (get-input obj)))
         (obj2 (cadr (get-input obj)))
         (sel  (selected? obj)))
     (begin
-      (cond (sel  (begin
-                    (send dc set-pen "orange" 6 'solid)
-                    (send dc set-brush "orange" 'solid)
-                    (send dc draw-rectangle x y w l))))
-      (cond ((eq? (get-tag obj1) 'primitive) (send-cons-obj dc obj1 #f x y))
-            ((eq? (get-tag obj1) 'cons     ) (send-cons     dc obj1 #f x y)))
-      (cond ((eq? (get-tag obj2) 'primitive) (send-cons-obj dc obj2 #f (+ x (car (get-size obj1))) y))
-            ((eq? (get-tag obj2) 'cons     ) (send-cons     dc obj2 #f x y))))
+      (cond ((eq? (get-tag obj1) 'primitive) (send-cons-obj dc obj1 sel x y))
+            ((eq? (get-tag obj1) 'cons     ) (send-cons     dc obj1)))
+      (cond ((eq? (get-tag obj2) 'primitive) (send-cons-obj dc obj2 sel (+ x (car (get-size obj1))) y))
+            ((eq? (get-tag obj2) 'cons     ) (send-cons     dc obj2))))
     )) ;End let, end define.
 
 
 (define (send-cons-obj dc obj select x y)
-  (send-primitive dc (create-obj 'primitive #f (cons x y)  (cons 30 30) #f '() (get-data obj))))
+  (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
 
-
-;
-;(define (send-list dc obj)
-;  (define (iter remaining)
-;    (let ((x (get-x remaining))
-;          (y (get-y remaining))
-;          (obj1 (car get-input remaining))
-;          (sel (selected? remaining)))
-;      (begin
-;        (if (eq? 'primitive (get-tag obj1))
-;            (send-cons-prim dc obj1 sel x y)
-;            '()) ;print complex obj
-;        (if (null? remaining)
-;            '()
-;            (iter (cdr remaining)))
-;        #t)))
-;  (iter obj))
 
 ;; SEND A MACHINE OBJECT TO THE DISPLAY
 (define (send-machine dc obj)
@@ -284,7 +263,7 @@
                 (begin
                   (let ((tag (get-tag (car ls))))
                     (cond ((eq? tag 'primitive) (send-primitive dc (car ls)))
-                          ((eq? tag 'cons     ) (send-cons      dc (car ls) (selected? (car ls)) (get-x (car ls)) (get-y (car ls))))
+                          ((eq? tag 'cons     ) (send-cons      dc (car ls) (get-x (car ls)) (get-y (car ls))))
                           ((eq? tag 'machine  ) (send-machine   dc (car ls)))
                           ((eq? tag 'button   ) (send-button    dc (car ls)))
                           ((eq? tag 'text     ) (send-text      dc (car ls)))))
@@ -321,32 +300,65 @@
 (define (all-but-in-range)
   (filter (lambda (x) (not (in-range x))) ls))
 
+(define (slist->string slst)
+  (string-join (map (lambda (x) (string-append (symbol->string (get-data x)) ", ")) slst) " "))
+
+(define (mylist->string object-lst)
+    (if (null? object-lst) 
+        " null"
+        (if (null? (get-input object-lst))
+            "nothing"
+            (string-append (slist->string (get-input object-lst)) " null "))))
 
 (define my-canvas%
   (class canvas% 
     (define message
       (new message%
-         [label "Selected:     Nothing"]
+         [label "Use left click to select, right click to deselect"]
          [parent frame]
          [min-width 100]
+         [auto-resize #t]
          [vert-margin 5]))
 
     ; Updates the message to the currently selected item
     (define update-message
          (lambda ()
            (let ((return (get-selected)))
-           (send message set-label (string-append "Selected:     "
-                                               (if (not (eq? return #f))
-                                                   (string-append
-                                                    (symbol->string
-                                                     (get-tag return))
-                                                    " : ")
-                                                    "Nothing")
-                                               (if (not (eq? return #f))
-                                                   (symbol->string
-                                                    (get-data return))
-                                                   ""))))))
-
+             (cond
+               ((eq? return #f) (send message set-label "Use left click to select, right click to deselect"))
+               ((and (eq? (get-data return) 'cons) (eq? (get-tag return) 'machine)) (send message set-label (string-append "Selected: Cons machine, containing: "
+                                                                                     (cond ((null? (get-input return)) "[nothing]")
+                                                                                           ((if (eqv? (count-inputs return) 1)
+                                                                                               (string-append "["
+                                                                                                              (symbol->string (get-data (car (get-input return))))
+                                                                                                              "]")
+                                                                                               (string-append "["
+                                                                                                              (symbol->string (get-data (car (get-input return))))
+                                                                                                              ", "
+                                                                                                              (symbol->string (get-data (cadr (get-input return))))
+                                                                                                              "]")))
+                                                                                           (else "Unknown")))))
+               ((and (eq? (get-data return) 'list) (eq? (get-tag return) 'machine)) (send message set-label
+                                                                                          (string-append "Selected: List machine, containing: ["
+                                                                                                         (mylist->string return)
+                                                                                                         "]")))
+                                                                                                         
+               ((eq? (get-tag return) 'primitive) (send message set-label
+                                                        (string-append "Selected: Primitive object, containing: ["
+                                                                       (symbol->string (get-data return))
+                                                                       "]")))
+                                                         
+               (else (send message set-label
+                           (string-append "Selected:     "
+                                          (if (not (eq? return #f))
+                                              (string-append
+                                               (symbol->string
+                                                (get-tag return))
+                                               " : ") "")                                                  
+                                          (if (not (eq? return #f))
+                                              (symbol->string
+                                               (get-data return))
+                                              ""))))))))
 
     (define/override (on-event event)
        ;Grab the x and y coords
@@ -394,7 +406,7 @@
                       ((add-as-list-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
                                                 (display "Added input to the list machine")
                                                 (display "ERROR: You can't add more than 2 inputs to a list machine")))
-                      (else (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))))
+                      (else (set! ls (cons (create-obj tag #t (cons (- mouse-x (/ l 2))  (- mouse-y (/ w 2))) (cons l w) #f (get-input selected) data) keep))))
                 
               (update-message)
               (display-list can))))
@@ -485,7 +497,6 @@
                       (iter (cdr machines))))))
             
             (iter machines)))
-            
             
           ; Did the user left click?
           (define (left-click?)
