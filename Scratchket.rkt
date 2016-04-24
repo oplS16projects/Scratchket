@@ -59,10 +59,35 @@
           ((in-range (car machines)) (car machines))
           (else (iter (cdr machines)))))
   (iter (get-machines)))
+  
+  
+  (define (get-cons-size obj)
+  (let ((siz1 (get-size (car  (get-input obj))))
+        (siz2 (get-size (cadr (get-input obj)))))
+          (let ((x1 (car  siz1))
+                (x2 (car  siz2))
+                (y1 (cdr siz1))
+                (y2 (cdr siz2)))
+            (cons (+ x1 x2) (if (> y1 y2)
+                                y1
+                                y2)))))
+
+(define (get-size obj)
+  (cond ((eq? (get-tag obj) 'primitive) (cons 30 30))
+        ((eq? (get-tag obj) 'cons     ) (get-cons-size obj))
+        ((eq? (get-tag obj) 'list     ) 30)))
+
+(define (calc-size lst)
+  (define (iter width height lst)
+    (if (null? lst)
+        (cons width height)
+        (iter (+ width (get-mywidth (car lst))) (get-mylength (car lst)) (cdr lst))))
+  (iter 0 0 lst))
+  
 
 ; Create a cons object
 (define (create-cons pos in)
-  (create-obj 'cons #f pos (cons 60 30) #f in 'cons))
+  (create-obj 'cons #f pos (calc-size in) #f in 'cons))
 
 (define create-list create-cons)
 
@@ -141,23 +166,25 @@
           '())
       )))
 
-
-(define (send-cons dc obj)
-  (let ((x    (get-x obj))
-        (y    (get-y obj))
-        (obj2 (car (get-input obj)))
-        (obj1 (cadr (get-input obj)))
+;; Send a cons cell to the screen
+(define (send-cons dc obj x y)
+  (let ((w    (car (get-size obj)))
+        (l    (cdr (get-size obj)))
+        (obj1 (car  (get-input obj)))
+        (obj2 (cadr (get-input obj)))
         (sel  (selected? obj)))
     (begin
-      (if (eq? 'primitive (get-tag obj1))
-          (send-cons-prim dc obj1 sel x y)
-          '()) ;otherwise print complex obj
-      (if (eq? 'primitive (get-tag obj2))
-          (send-cons-prim dc obj2 sel (+ x 30) y)
-          '())))) ;otherwise print complex obj
+      (cond ((eq? (get-tag obj1) 'primitive) (send-cons-obj dc obj1 sel x y))
+            ((eq? (get-tag obj1) 'cons     ) (send-cons     dc obj1)))
+      (cond ((eq? (get-tag obj2) 'primitive) (send-cons-obj dc obj2 sel (+ x (car (get-size obj1))) y))
+            ((eq? (get-tag obj2) 'cons     ) (send-cons     dc obj2))))
+    )) ;End let, end define.
 
-(define (send-cons-prim dc obj select x y)
+
+(define (send-cons-obj dc obj select x y)
   (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
+
+
 
 (define (send-list dc obj)
   (define (iter remaining)
