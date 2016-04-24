@@ -185,22 +185,22 @@
   (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
 
 
-
-(define (send-list dc obj)
-  (define (iter remaining)
-    (let ((x (get-x remaining))
-          (y (get-y remaining))
-          (obj1 (car get-input remaining))
-          (sel (selected? remaining)))
-      (begin
-        (if (eq? 'primitive (get-tag obj1))
-            (send-cons-prim dc obj1 sel x y)
-            '()) ;print complex obj
-        (if (null? remaining)
-            '()
-            (iter (cdr remaining)))
-        #t)))
-  (iter obj))
+;
+;(define (send-list dc obj)
+;  (define (iter remaining)
+;    (let ((x (get-x remaining))
+;          (y (get-y remaining))
+;          (obj1 (car get-input remaining))
+;          (sel (selected? remaining)))
+;      (begin
+;        (if (eq? 'primitive (get-tag obj1))
+;            (send-cons-prim dc obj1 sel x y)
+;            '()) ;print complex obj
+;        (if (null? remaining)
+;            '()
+;            (iter (cdr remaining)))
+;        #t)))
+;  (iter obj))
 
 ;; SEND A MACHINE OBJECT TO THE DISPLAY
 (define (send-machine dc obj)
@@ -280,7 +280,7 @@
                 (begin
                   (let ((tag (get-tag (car ls))))
                     (cond ((eq? tag 'primitive) (send-primitive dc (car ls)))
-                          ((eq? tag 'cons     ) (send-cons      dc (car ls)))
+                          ((eq? tag 'cons     ) (send-cons      dc (car ls) (get-x (car ls)) (get-y (car ls))))
                           ((eq? tag 'machine  ) (send-machine   dc (car ls)))
                           ((eq? tag 'button   ) (send-button    dc (car ls)))
                           ((eq? tag 'text     ) (send-text      dc (car ls)))))
