@@ -141,49 +141,66 @@
       )))
 
 
-;; Send a cons object to the display
 (define (send-cons dc obj)
-  (begin
-    (let ((x    (get-x         obj))
-          (y    (get-y         obj))
-          (l1   (get-mylength (car  (get-input obj))))
-          (w1   (get-mywidth  (car  (get-input obj))))
-          (sym1 (get-data     (car  (get-input obj))))
-          (l2   (get-mylength (cadr (get-input obj))))
-          (w2   (get-mywidth  (cadr (get-input obj))))
-          (sym2 (get-data     (cadr (get-input obj))))
-      
-          (color1 (if (eq? (car (get-input obj)) 'null)
-                      "white"
-                      (symbol->string (get-data (car (get-input obj))))))
-          (color2 (if (eq? (cadr (get-input obj)) 'null)
-                      "white"
-                      (symbol->string (get-data (cadr (get-input obj)))))))
-      (send dc set-brush color1 'solid)
-      (if (selected? obj)
-          (send dc set-pen "orange" 2 'solid)
-          (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle x y w1 l1)
-      (send dc set-pen "black" 2 'solid)
-      (if (eq? sym1 'null)
-          (send dc draw-line
-                (+ x 1)  (+ y 29)
-                (+ x 29) (+ y 1))
-                
-          '())
-      (send dc set-brush color2 'solid)
-      (if (selected? obj)
-          (send dc set-pen "orange" 2 'solid)
-          (send dc set-pen "black" 1 'solid))
-      (send dc draw-rectangle (+ x 30) y w2 l2)
-      (send dc set-pen "black" 2 'solid)
-      (if (eq? sym2 'null)
-          (send dc draw-line
-                (+ x 31)  (+ y 29)
-                (+ x 59) (+ y 1))
-                
-          '())
-      )))
+  (let ((x    (get-x obj))
+        (y    (get-y obj))
+        (obj1 (car (get-input obj)))
+        (obj2 (cadr (get-input obj)))
+        (sel  (selected? obj)))
+    (begin
+      (if (eq? 'primitive (get-tag obj1))
+          (send-cons-prim dc obj1 sel x y)
+          '()) ;otherwise print complex obj
+      (if (eq? 'primitive (get-tag obj2))
+          (send-cons-prim dc obj2 sel (+ x 30) y)
+          '())))) ;otherwise print complex obj
+
+(define (send-cons-prim dc obj select x y)
+  (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
+
+;; Send a cons object to the display
+;(define (send-cons dc obj)
+;  (begin
+;    (let ((x    (get-x         obj))
+;          (y    (get-y         obj))
+;          (l1   (get-mylength (car  (get-input obj))))
+;          (w1   (get-mywidth  (car  (get-input obj))))
+;          (sym1 (get-data     (car  (get-input obj))))
+;          (l2   (get-mylength (cadr (get-input obj))))
+;          (w2   (get-mywidth  (cadr (get-input obj))))
+;          (sym2 (get-data     (cadr (get-input obj))))
+;      
+;          (color1 (if (eq? (car (get-input obj)) 'null)
+;                      "white"
+;                      (symbol->string (get-data (car (get-input obj))))))
+;          (color2 (if (eq? (cadr (get-input obj)) 'null)
+;                      "white"
+;                      (symbol->string (get-data (cadr (get-input obj)))))))
+;      (send dc set-brush color1 'solid)
+;      (if (selected? obj)
+;          (send dc set-pen "orange" 2 'solid)
+;          (send dc set-pen "black" 1 'solid))
+;      (send dc draw-rectangle x y w1 l1)
+;      (send dc set-pen "black" 2 'solid)
+;      (if (eq? sym1 'null)
+;          (send dc draw-line
+;                (+ x 1)  (+ y 29)
+;                (+ x 29) (+ y 1))
+;                
+;          '())
+;      (send dc set-brush color2 'solid)
+;      (if (selected? obj)
+;          (send dc set-pen "orange" 2 'solid)
+;          (send dc set-pen "black" 1 'solid))
+;      (send dc draw-rectangle (+ x 30) y w2 l2)
+;      (send dc set-pen "black" 2 'solid)
+;      (if (eq? sym2 'null)
+;          (send dc draw-line
+;                (+ x 31)  (+ y 29)
+;                (+ x 59) (+ y 1))
+;                
+;          '())
+;      )))
 
 ;; SEND A MACHINE OBJECT TO THE DISPLAY
 (define (send-machine dc obj)
