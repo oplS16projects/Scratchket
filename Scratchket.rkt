@@ -60,8 +60,6 @@
           (else (iter (cdr machines)))))
   (iter (get-machines)))
 
-
-
 ; Create a cons object
 (define (create-cons pos in)
   (create-obj 'cons #f pos (cons 60 30) #f in 'cons))
@@ -84,11 +82,14 @@
         (men (menu-item?   machine))
         (dat (get-data     machine))
         (in  (get-input    machine)))
-    (if (and (eq? dat 'cons) (< (count-inputs machine) 2))
-        (begin
-          (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))
-          #t)
-        #f)))
+    (cond ((and (eq? dat 'cons)
+                (< (count-inputs machine) 2)) (begin
+                                                (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))
+                                                #t))
+          ((eq? dat 'list) (begin
+                             (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))
+                             #t))
+          (else #f))))
 
 
 ;; ADD OBJECTS TO LIST FOR THE MENU
@@ -100,7 +101,8 @@
     (add-obj-to-list (create-obj 'primitive #f (cons 25 70)  (cons 30 30) #t '() 'green))
     (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t '() 'blue))
     (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t '() 'null))
-    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t '() 'cons ))
+    (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t '() 'cons))
+    (add-obj-to-list (create-obj 'machine   #f (cons 10 290) (cons 60 60) #t '() 'list))
     (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t '() 'RESET))
     (add-obj-to-list (create-obj 'button    #f (cons 10 400) (cons 60 20) #t '() 'PROCESS))
     (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t '() 'MENU))))
@@ -219,7 +221,9 @@
                                    #:family 'roman
                                    #:weight 'bold
                                    #:size-in-pixels? #t))
-      (send dc draw-text "CONS" (+ x 10) (+ y 2))
+      (cond ((eq? (get-data obj) 'cons) (send dc draw-text "CONS" (+ x 10) (+ y 2)))
+             ((eq? (get-data obj) 'list) (send dc draw-text "LIST" (+ x 10) (+ y 2))))
+             
       (send dc set-brush "yellow" 'solid)
       (if (eq? (get-data obj) 'cons)
           (cond ((= (count-inputs obj) 0) '())
@@ -231,7 +235,6 @@
                    (send dc draw-rectangle (+ x 36) (+ y 40) 10 10))))
           '())
             
-    
     ))) ; End of send-machine
 
 ;; SEND A BUTTON OBJECT TO THE DISPLAY
@@ -245,7 +248,6 @@
       (send dc set-brush "yellow" 'solid)
       (send dc set-pen "black" 1 'solid)
       (send dc draw-rectangle x y w l)
-      ;(send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 12
                                    #:family 'roman
                                    #:weight 'bold
@@ -263,8 +265,6 @@
     (begin
       (send dc set-brush "yellow" 'solid)
       (send dc set-pen "black" 1 'solid)
-      ;(send dc draw-rectangle x y w l)
-      ;(send dc draw-rectangle (+ x 9) y 41 16)
       (send dc set-font (make-font #:size 14 #:family 'roman
                              #:weight 'bold
                              #:size-in-pixels? #t))
@@ -297,7 +297,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (define mouse-x 0)
 (define mouse-y 0)
-
 
 (define (in-range x)
   (if (eq? 'ERROR x)
@@ -367,9 +366,14 @@
               (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f '() data))
                      (display-list can))))
 
-        ; Determines if something selected should be added as input to a machine
-        (define (add-as-input?)
-          (if (and selected change (eq? 'machine (get-tag change)))
+        ; Determines if something selected should be added as input to the cons machine
+        (define (add-as-cons-input?)
+          (if (and selected change (eq? 'machine (get-tag change)) (eq? 'cons (get-data change)))
+              #t
+              #f))
+        ; Determines if something selected should be added as input to the list machine
+        (define (add-as-list-input?)
+          (if (and selected change (eq? 'machine (get-tag change)) (eq? 'list (get-data change)))
               #t
               #f))
 
@@ -382,9 +386,12 @@
                   (w    (get-mywidth  selected))
                   (data (get-data     selected)))
               (begin
-                (cond ((add-as-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
-                                           (display "Added input to the cons machine")
-                                           (display "ERROR: You can't add more than 2 inputs to a cons machine")))
+                (cond ((add-as-cons-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
+                                                (display "Added input to the cons machine")
+                                                (display "ERROR: You can't add more than 2 inputs to a cons machine")))
+                      ((add-as-list-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
+                                                (display "Added input to the list machine")
+                                                (display "ERROR: You can't add more than 2 inputs to a list machine")))
                       (else (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))))
                 
 ;                (if (and (in-range (get-machine-in-range))
@@ -523,4 +530,3 @@
                  ))
 (display-list can)
 (send frame show #t)
-(display-list can)
