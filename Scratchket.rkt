@@ -390,7 +390,7 @@
                       ((add-as-list-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
                                                 (display "Added input to the list machine")
                                                 (display "ERROR: You can't add more than 2 inputs to a list machine")))
-                      (else (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))))
+                      (else (set! ls (cons (create-obj tag #t (cons (- mouse-x (/ l 2))  (- mouse-y (/ w 2))) (cons l w) #f (get-input selected) data) keep))))
                 
               (update-message)
               (display-list can))))
