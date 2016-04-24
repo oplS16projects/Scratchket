@@ -167,22 +167,26 @@
       )))
 
 ;; Send a cons cell to the screen
-(define (send-cons dc obj x y)
+(define (send-cons dc obj sel x y)
   (let ((w    (car (get-size obj)))
         (l    (cdr (get-size obj)))
         (obj1 (car  (get-input obj)))
         (obj2 (cadr (get-input obj)))
         (sel  (selected? obj)))
     (begin
-      (cond ((eq? (get-tag obj1) 'primitive) (send-cons-obj dc obj1 sel x y))
-            ((eq? (get-tag obj1) 'cons     ) (send-cons     dc obj1)))
-      (cond ((eq? (get-tag obj2) 'primitive) (send-cons-obj dc obj2 sel (+ x (car (get-size obj1))) y))
-            ((eq? (get-tag obj2) 'cons     ) (send-cons     dc obj2))))
+      (cond (sel  (begin
+                    (send dc set-pen "orange" 6 'solid)
+                    (send dc set-brush "orange" 'solid)
+                    (send dc draw-rectangle x y w l))))
+      (cond ((eq? (get-tag obj1) 'primitive) (send-cons-obj dc obj1 #f x y))
+            ((eq? (get-tag obj1) 'cons     ) (send-cons     dc obj1 #f x y)))
+      (cond ((eq? (get-tag obj2) 'primitive) (send-cons-obj dc obj2 #f (+ x (car (get-size obj1))) y))
+            ((eq? (get-tag obj2) 'cons     ) (send-cons     dc obj2 #f x y))))
     )) ;End let, end define.
 
 
 (define (send-cons-obj dc obj select x y)
-  (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
+  (send-primitive dc (create-obj 'primitive #f (cons x y)  (cons 30 30) #f '() (get-data obj))))
 
 
 ;
@@ -280,7 +284,7 @@
                 (begin
                   (let ((tag (get-tag (car ls))))
                     (cond ((eq? tag 'primitive) (send-primitive dc (car ls)))
-                          ((eq? tag 'cons     ) (send-cons      dc (car ls) (get-x (car ls)) (get-y (car ls))))
+                          ((eq? tag 'cons     ) (send-cons      dc (car ls) (selected? (car ls)) (get-x (car ls)) (get-y (car ls))))
                           ((eq? tag 'machine  ) (send-machine   dc (car ls)))
                           ((eq? tag 'button   ) (send-button    dc (car ls)))
                           ((eq? tag 'text     ) (send-text      dc (car ls)))))
@@ -390,7 +394,7 @@
                       ((add-as-list-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
                                                 (display "Added input to the list machine")
                                                 (display "ERROR: You can't add more than 2 inputs to a list machine")))
-                      (else (set! ls (cons (create-obj tag #t (cons (- mouse-x (/ l 2))  (- mouse-y (/ w 2))) (cons l w) #f (get-input selected) data) keep))))
+                      (else (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons l w) #f (get-input selected) data) keep))))
                 
               (update-message)
               (display-list can))))
