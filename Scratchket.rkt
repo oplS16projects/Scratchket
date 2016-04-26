@@ -74,8 +74,8 @@
                 (y1 (cdr siz1))
                 (y2 (cdr siz2)))
             (cons (+ x1 x2 bars bars space) (if (> y1 y2)
-                                y1
-                                y2)))))
+                                (+ y1 12)
+                                (+ y2 12))))))
 
 (define (get-size obj)
   (cond ((eq? (get-tag obj) 'primitive) (cons 30 30))
@@ -85,7 +85,7 @@
 (define (calc-size lst)
   (define (iter width height lst)
     (if (null? lst)
-        (cons (+ width bars space bars) height)
+        (cons (+ width bars space bars) (+ height 12))
         (iter (+ width (get-mywidth (car lst))) (get-mylength (car lst)) (cdr lst))))
   (iter 0 0 lst))
   
@@ -200,13 +200,13 @@
       ; Display cons structure (parens and dot)
       (send-cons-cell dc obj x y w l)
       (send dc set-brush "black" 'solid)
-      (send dc draw-rectangle (+ x bars (car (get-size obj1)) 2) (- (+ y l) 6) 4 4)
+      
       ; Display car of cons cell
-      (cond ((eq? (get-tag obj1) 'primitive) (send-primitive dc obj1 (+ x bars) y))
-            ((eq? (get-tag obj1) 'cons     ) (send-cons      dc obj1 (+ x bars) y)))
+      (cond ((eq? (get-tag obj1) 'primitive) (send-primitive dc obj1 (+ x bars) (+ y 6)))
+            ((eq? (get-tag obj1) 'cons     ) (send-cons      dc obj1 (+ x bars) (+ y 6))))
       ; Display cdr of cons cell
-      (cond ((eq? (get-tag obj2) 'primitive) (send-primitive dc obj2 (+ x bars space (car (get-size obj1))) y))
-            ((eq? (get-tag obj2) 'cons     ) (send-cons      dc obj2 (+ x bars space (car (get-size obj1))) y))))
+      (cond ((eq? (get-tag obj2) 'primitive) (send-primitive dc obj2 (+ x bars space (car (get-size obj1))) (+ y 6)))
+            ((eq? (get-tag obj2) 'cons     ) (send-cons      dc obj2 (+ x bars space (car (get-size obj1))) (+ y 6)))))
     )) ;End let, end define.
 
 
@@ -214,11 +214,16 @@
   (begin
     (send dc set-pen "white" 0 'transparent)
     
-    (send dc set-brush "white" 'solid)
-    ;(send dc draw-rectangle (+ x whitebar)   y whitebar l)
-    ;(send dc draw-rectangle (- (+ x w) bars) y whitebar l)
+    
     
     (send dc set-brush "black" 'solid)
+    ; top bar
+    (send dc draw-rectangle x y w 4)
+    ; bottom bar
+    (send dc draw-rectangle x (- (+ y l) 4) w 4)
+    ; center bar
+    (send dc draw-rectangle (+ x bars (car (get-size (car (get-input obj)))) 2) y 4 l)
+    ; side bars
     (send dc draw-rectangle    x      y blackbar l)
     (send dc draw-rectangle (- (+ x w) blackbar) y blackbar l)))
 
