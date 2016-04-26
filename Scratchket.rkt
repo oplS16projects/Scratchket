@@ -3,6 +3,11 @@
 (require racket/gui/base)
 (require racket/draw)
 
+(define space    8)
+(define whitebar 2)
+(define blackbar 4)
+(define bars (+ blackbar whitebar))
+
 ;; Create an object and return it
 (define (create-obj tag selected pos size menu-item input data)
   (cons (list tag selected pos size menu-item input) data))
@@ -68,9 +73,9 @@
                 (x2 (car  siz2))
                 (y1 (cdr siz1))
                 (y2 (cdr siz2)))
-            (cons (+ x1 x2) (if (> y1 y2)
-                                y1
-                                y2)))))
+            (cons (+ x1 x2 bars bars space) (if (> y1 y2)
+                                (+ y1 12)
+                                (+ y2 12))))))
 
 (define (get-size obj)
   (cond ((eq? (get-tag obj) 'primitive) (cons 30 30))
@@ -80,7 +85,7 @@
 (define (calc-size lst)
   (define (iter width height lst)
     (if (null? lst)
-        (cons width height)
+        (cons (+ width bars space bars) (+ height 12))
         (iter (+ width (get-mywidth (car lst))) (get-mylength (car lst)) (cdr lst))))
   (iter 0 0 lst))
   
@@ -94,7 +99,20 @@
 ;; ADD AN OBJECT TO THE LIST
 (define (add-obj-to-list obj)
   (set! ls (cons obj ls)))
-  
+
+
+(define (deselect obj)
+  (let ((tag (get-tag      obj))
+        (sel (selected?    obj))
+        (x   (get-x        obj))
+        (y   (get-y        obj))
+        (w   (get-mywidth  obj))
+        (l   (get-mylength obj))
+        (men (menu-item?   obj))
+        (dat (get-data     obj))
+        (in  (get-input    obj)))
+    (create-obj tag #f (cons x y) (cons w l) men in dat)))
+
 ;; Add input to a machine - returns #f if unable to add input or
 ;;                          returns a new machine with the input added to the machine.
 (define (add-input-to-machine machine input lst)
@@ -109,10 +127,10 @@
         (in  (get-input    machine)))
     (cond ((and (eq? dat 'cons)
                 (< (count-inputs machine) 2)) (begin
-                                                (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))
+                                                (set! ls (cons (create-obj tag #f (cons x y) (cons w l) men (append in (list (deselect input))) dat) lst))
                                                 #t))
           ((eq? dat 'list) (begin
-                             (set! ls (cons (create-obj tag sel (cons x y) (cons w l) men (cons input in) dat) lst))
+                             (set! ls (cons (create-obj tag #f (cons x y) (cons w l) men (append in (list (deselect input))) dat) lst))
                              #t))
           (else #f))))
 
@@ -127,7 +145,7 @@
     (add-obj-to-list (create-obj 'primitive #f (cons 25 120) (cons 30 30) #t '() 'blue))
     (add-obj-to-list (create-obj 'primitive #f (cons 25 170) (cons 30 30) #t '() 'null))
     (add-obj-to-list (create-obj 'machine   #f (cons 10 220) (cons 60 60) #t '() 'cons))
-    (add-obj-to-list (create-obj 'machine   #f (cons 10 290) (cons 60 60) #t '() 'list))
+    (add-obj-to-list (create-obj 'machine   #f (cons 10 300) (cons 60 60) #t '() 'list))
     (add-obj-to-list (create-obj 'button    #f (cons 10 500) (cons 60 20) #t '() 'RESET))
     (add-obj-to-list (create-obj 'button    #f (cons 10 400) (cons 60 20) #t '() 'PROCESS))
     (add-obj-to-list (create-obj 'text      #f (cons 11 0)   (cons 20 20) #t '() 'MENU))))
@@ -143,12 +161,10 @@
 
 
 ;; SEND A PRIMITIVE OBJECT TO THE DISPLAY
-(define (send-primitive dc obj)
+(define (send-primitive dc obj x y)
   (begin
-    (let ((x (get-x obj))
-          (y (get-y obj))
+    (let ((w (get-mywidth  obj))
           (l (get-mylength obj))
-          (w (get-mywidth  obj))
           (sym (get-data obj))
           (color (if (eq? (get-data obj) 'null)
                      "white"
@@ -166,6 +182,8 @@
           '())
       )))
 
+
+
 ;; Send a cons cell to the screen
 (define (send-cons dc obj x y)
   (let ((w    (car (get-size obj)))
@@ -174,15 +192,43 @@
         (obj2 (cadr (get-input obj)))
         (sel  (selected? obj)))
     (begin
-      (cond ((eq? (get-tag obj1) 'primitive) (send-cons-obj dc obj1 sel x y))
-            ((eq? (get-tag obj1) 'cons     ) (send-cons     dc obj1)))
-      (cond ((eq? (get-tag obj2) 'primitive) (send-cons-obj dc obj2 sel (+ x (car (get-size obj1))) y))
-            ((eq? (get-tag obj2) 'cons     ) (send-cons     dc obj2))))
+      ; If the cons cell is selected, highlight it.
+      (cond (sel (begin
+                   (send dc set-pen "white" 0 'transparent)
+                   (send dc set-brush "orange" 'solid)
+                   (send dc draw-rectangle (- x 2) (- y 2) (+ w 4) (+ l 4)))))
+      ; Display cons structure (parens and dot)
+      (send-cons-cell dc obj x y w l)
+      (send dc set-brush "black" 'solid)
+      
+      ; Display car of cons cell
+      (cond ((eq? (get-tag obj1) 'primitive) (send-primitive dc obj1 (+ x bars) (+ y 6)))
+            ((eq? (get-tag obj1) 'cons     ) (send-cons      dc obj1 (+ x bars) (+ y 6))))
+      ; Display cdr of cons cell
+      (cond ((eq? (get-tag obj2) 'primitive) (send-primitive dc obj2 (+ x bars space (car (get-size obj1))) (+ y 6)))
+            ((eq? (get-tag obj2) 'cons     ) (send-cons      dc obj2 (+ x bars space (car (get-size obj1))) (+ y 6)))))
     )) ;End let, end define.
 
 
-(define (send-cons-obj dc obj select x y)
-  (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
+(define (send-cons-cell dc obj x y w l)
+  (begin
+    (send dc set-pen "white" 0 'transparent)
+    
+    
+    
+    (send dc set-brush "black" 'solid)
+    ; top bar
+    (send dc draw-rectangle x y w 4)
+    ; bottom bar
+    (send dc draw-rectangle x (- (+ y l) 4) w 4)
+    ; center bar
+    (send dc draw-rectangle (+ x bars (car (get-size (car (get-input obj)))) 2) y 4 l)
+    ; side bars
+    (send dc draw-rectangle    x      y blackbar l)
+    (send dc draw-rectangle (- (+ x w) blackbar) y blackbar l)))
+
+;(define (send-cons-obj dc obj x y)
+;  (send-primitive dc (create-obj 'primitive select (cons x y)  (cons 30 30) #f '() (get-data obj))))
 
 
 ;; SEND A MACHINE OBJECT TO THE DISPLAY
@@ -197,13 +243,13 @@
           (send dc set-pen "orange" 2 'solid)
           (send dc set-pen "black" 1 'solid))
       (send dc draw-rectangle x y w l)
-      (send dc draw-rectangle (+ x 9) y 41 16)
+      (send dc draw-rectangle x y w 16)
       (send dc set-font (make-font #:size 12
                                    #:family 'roman
                                    #:weight 'bold
                                    #:size-in-pixels? #t))
       (cond ((eq? (get-data obj) 'cons) (send dc draw-text "CONS" (+ x 10) (+ y 2)))
-             ((eq? (get-data obj) 'list) (send dc draw-text "LIST" (+ x 10) (+ y 2))))
+            ((eq? (get-data obj) 'list) (send dc draw-text "LIST" (+ x 10) (+ y 2))))
              
       (send dc set-brush "yellow" 'solid)
       (if (eq? (get-data obj) 'cons)
@@ -262,7 +308,7 @@
                 '()
                 (begin
                   (let ((tag (get-tag (car ls))))
-                    (cond ((eq? tag 'primitive) (send-primitive dc (car ls)))
+                    (cond ((eq? tag 'primitive) (send-primitive dc (car ls) (get-x (car ls)) (get-y (car ls))))
                           ((eq? tag 'cons     ) (send-cons      dc (car ls) (get-x (car ls)) (get-y (car ls))))
                           ((eq? tag 'machine  ) (send-machine   dc (car ls)))
                           ((eq? tag 'button   ) (send-button    dc (car ls)))
@@ -377,7 +423,7 @@
                   (l     (if change (get-mylength change) '()))
                   (w     (if change (get-mywidth change)  '()))
                   (data  (if change (get-data change)     '())))
-              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons l w) #f '() data))
+              (begin (add-obj-to-list (create-obj tag #f (cons (+ x 130) y) (cons w l) #f '() data))
                      (display-list can))))
 
         ; Determines if something selected should be added as input to the cons machine
@@ -406,7 +452,7 @@
                       ((add-as-list-input?) (if (add-input-to-machine change selected (filter (lambda (x) (not (in-range x))) keep))
                                                 (display "Added input to the list machine")
                                                 (display "ERROR: You can't add more than 2 inputs to a list machine")))
-                      (else (set! ls (cons (create-obj tag #t (cons (- mouse-x (/ l 2))  (- mouse-y (/ w 2))) (cons l w) #f (get-input selected) data) keep))))
+                      (else (set! ls (cons (create-obj tag #t (cons mouse-x mouse-y) (cons w l) #f (get-input selected) data) keep))))
                 
               (update-message)
               (display-list can))))
@@ -420,7 +466,7 @@
                   (w     (if change (get-mywidth change)  '()))
                   (data  (if change (get-data change)     '())))
               (begin
-                (set! ls (cons (create-obj tag #t (cons x y) (cons l w) #f (get-input change) data) all-but))
+                (set! ls (cons (create-obj tag #t (cons x y) (cons w l) #f (get-input change) data) all-but))
                 (display-list can)
                 (update-message))))
 
@@ -433,7 +479,7 @@
                   (w    (get-mywidth  selected))
                   (data (get-data     selected)))
               (begin
-                (set! ls (cons (create-obj tag #f (cons x y) (cons l w) #f (get-input selected) data) keep))
+                (set! ls (cons (create-obj tag #f (cons x y) (cons w l) #f (get-input selected) data) keep))
                 (display-list can)
                 (update-message))))
 
