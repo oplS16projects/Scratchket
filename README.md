@@ -71,63 +71,40 @@ I will be working on the graphics side of the GUI and the internal representatio
 ## Favorite code:
 ###Brian's: The main method to update the visuals for the entire gui. It recursively updates the GUI with the new positions
 of the objects.
-``` (define (display-list canvas)
-
+```
+(define (display-list canvas)
   (send canvas
-  
         refresh-now
-        
         (lambda (dc)
-        
           (define (iter ls)
-          
             (if (null? ls)
-            
                 '()
-                
                 (begin
-                
                   (let ((tag (get-tag (car ls))))
-                  
                     (cond ((eq? tag 'primitive) (send-primitive dc (car ls) (get-x (car ls)) (get-y (car ls))))
-                    
                           ((eq? tag 'cons     ) (send-cons      dc (car ls) (get-x (car ls)) (get-y (car ls))))
-                          
                           ((eq? tag 'list     ) (send-list      dc (car ls) (get-x (car ls)) (get-y (car ls))))
-                          
                           ((eq? tag 'machine  ) (send-machine   dc (car ls)))
-                          
                           ((eq? tag 'button   ) (send-button    dc (car ls)))
-                          
                           ((eq? tag 'text     ) (send-text      dc (car ls)))))
-                          
                   (iter (cdr ls)))))
-                  
           (iter ls)))
-          
   ) ;; END OF DISPLAY-LIST ```
-  
+  ```
 ###Kyle's:
  This is the main method for handling the program's UI. Depending on certain conditions when you left click,
  different procedures will run. This handles all of the left click actions and is the most essential part of the UI.
-``` ; What occurs when the left click is pressed
-
+``` 
+; What occurs when the left click is pressed
           (define (left-click-action)
-          
             (cond
-            
               (selected (move-selected))
-              
               ((reset?) (reset))
-              
               ((process?) (process (get-non-machines) (get-machines)))
-              
               ((dup-menu-item?) (menu-create-new))
-              
               ; If nothing is selected, but something is in range, select it.
-              
               (change (select-item))))```
-              
+```
 ## Screenshots:
 
 Basic (clean GUI)
