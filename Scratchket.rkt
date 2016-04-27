@@ -667,7 +667,7 @@
                                                                      (add-obj-to-list (create-obj tag1 sel1 (cons (+ x 80) y) (cons w1 l1) menu1 in1 data1))
                                                                      (display-list can)))))
                             ; If the machine is a cdr, process as a cdr
-                            ((and (eq? data 'cdr) (= numin 1)) (if (eq? 'list (get-tag (get-input (car in))))
+                            ((and (eq? data 'cdr) (= numin 1)) (if (eq? 'list (get-tag (car in)))
                                                                    (cond
                                                                      ; If the input is a list of 1 thing, return null
                                                                      ((= (length (get-input (car in))) 1)
