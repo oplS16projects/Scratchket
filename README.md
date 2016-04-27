@@ -55,7 +55,8 @@ UPDATE 4/23: Internal representations of the data structures is complete. Primit
 
 ### Final Presentation (last week of semester)
 <strike>In combination with the visual form we will also have a printed form of the data structures.</strike><br>
-UPDATE 4/27: Added car and cdr to cons and list. All machines appear to be working properly. Machines check for appropriate input (car and cdr can't take primitive inputs) and they can all take lists or cons cells as inputs. 
+UPDATE 4/27: Added car and cdr to cons and list. All machines appear to be working properly. Machines check for appropriate input (car and cdr can't take primitive inputs) and they can all take lists or cons cells as inputs. However, we did not have
+time to make a printed form of the data structures.
 
 ## Group Responsibilities
 Here each group member gets a section where they, as an individual, detail what they are responsible for in this project. Each group member writes their own Responsibility section. Include the milestones and final deliverable.
