@@ -69,7 +69,9 @@ I am going to do the user interface, link the user interface to the internal rep
 I will be working on the graphics side of the GUI and the internal representation of the underlying data structures.
 
 ## Favorite code:
-###Brian's: The main method to update the visuals for the entire gui. It recursively updates the GUI with the new positions
+###Brian's: 
+
+The main method to update the visuals for the entire gui. It recursively updates the GUI with the new positions
 of the objects.
 ```
 (define (display-list canvas)
@@ -92,6 +94,7 @@ of the objects.
   ) ;; END OF DISPLAY-LIST ```
   ```
 ###Kyle's:
+
  This is the main method for handling the program's UI. Depending on certain conditions when you left click,
  different procedures will run. This handles all of the left click actions and is the most essential part of the UI.
 ``` 
