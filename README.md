@@ -54,7 +54,8 @@ UPDATE 4/15: We have created a GUI that works with primitives only. The internal
 UPDATE 4/23: Internal representations of the data structures is complete. Primitve types can be input into the cons machine. As primitives are input, lights turn on in the machine to indicate how many inputs it has. In order for the machine to work, a process button has been added. All processing is held off until this button is pushed. This was done so a machine's output can be the input for another machine. Unfortunately the cons machine only works with primitives for right now. Work needs to be done so a cons cell will expand in order to draw larger complex inputs within a cons cell. Lists should be done in time for the presentation as they should just be an implementation of the cons machine which is almost complete. In order to run our program you should only need to install the racket/draw package.
 
 ### Final Presentation (last week of semester)
-In combination with the visual form we will also have a printed form of the data structures.
+<strike>In combination with the visual form we will also have a printed form of the data structures.</strike><br>
+UPDATE 4/27: Added car and cdr to cons and list. All machines appear to be working properly. Machines check for appropriate input (car and cdr can't take primitive inputs) and they can all take lists or cons cells as inputs. 
 
 ## Group Responsibilities
 Here each group member gets a section where they, as an individual, detail what they are responsible for in this project. Each group member writes their own Responsibility section. Include the milestones and final deliverable.
